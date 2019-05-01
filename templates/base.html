@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Cori+</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+  </head>
+  <body>
+    <div class="header">
+      <h1><a href="{{ url_for('homepage') }}">Cori+</a></h1>
+      <div class="metanav">
+      {% if not session.logged_in %}
+        <a href="{{ url_for('login') }}">log in</a>
+        <a href="{{ url_for('register') }}">register</a>
+      {% else %}
+        <a href="{{ url_for('user_detail', username=current_user.username) }}">{{ current_user.username }}</a> - 
+        <a href="{# url_for('public_timeline') #}">explore</a>
+        <a href="{{ url_for('create') }}">create</a>
+        <a href="{{ url_for('logout') }}">log out</a>
+      {% endif %}
+      </div>
+    </div>
+    <div class="content">
+      {% for message in get_flashed_messages() %}
+        <div class=flash>{{ message }}</div>
+      {% endfor %}
+      {% block body %}{% endblock %}
+    </div>
+    <script src="/static/lib.js"></script>
+  </body>
+</html>

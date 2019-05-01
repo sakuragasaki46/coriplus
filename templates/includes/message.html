@@ -1,0 +1,2 @@
+<p class="message-content">{{ message.text|enrich }}</p>
+<p class="message-footer"><a href="{{ url_for('user_detail', username=message.user.username) }}">{{ message.user.username }}</a> - {{ message.pub_date | human_date }}</p>
