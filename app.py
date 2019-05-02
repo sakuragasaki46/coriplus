@@ -3,7 +3,7 @@ from flask import (
     send_from_directory, session, url_for)
 import hashlib
 from peewee import *
-import datetime, time, re, os
+import datetime, time, re, os, string
 from functools import wraps
 
 DATABASE = 'coriplus.sqlite'
@@ -105,12 +105,13 @@ def create_tables():
         os.makedirs(UPLOAD_DIRECTORY)
 
 _forbidden_extensions = 'com net org txt'.split()
+_username_characters = frozenset(string.ascii_letters + string.digits + '_')
 
 def is_username(username):
     username_splitted = username.split('.')
     if username_splitted and username_splitted[-1] in _forbidden_extensions:
         return False
-    return all(x.isidentifier() for x in username_splitted)
+    return all(x and set(x) < _username_characters for x in username_splitted)
 
 def validate_birthday(date):
     today = datetime.date.today()
