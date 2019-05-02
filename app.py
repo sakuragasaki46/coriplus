@@ -1,9 +1,9 @@
 from flask import (
     Flask, Markup, abort, flash, g, jsonify, redirect, render_template, request,
-    session, url_for)
+    send_from_directory, session, url_for)
 import hashlib
 from peewee import *
-import datetime, time, re
+import datetime, time, re, os
 from functools import wraps
 
 DATABASE = 'coriplus.sqlite'
@@ -88,9 +88,21 @@ class Relationship(BaseModel):
         )
 
 
+UPLOAD_DIRECTORY = 'uploads/'
+class Upload(BaseModel):
+    # the extension of the media
+    type = TextField()
+    # the message bound to this media
+    message = ForeignKeyField(Message, backref='uploads')
+    # helper to retrieve contents
+    def filename(self):
+        return str(self.id) + '.' + self.type
+
 def create_tables():
     with database:
-        database.create_tables([User, Message, Relationship])
+        database.create_tables([User, Message, Relationship, Upload])
+    if not os.path.isdir(UPLOAD_DIRECTORY):
+        os.makedirs(UPLOAD_DIRECTORY)
 
 _forbidden_extensions = 'com net org txt'.split()
 
@@ -221,7 +233,8 @@ def private_timeline():
     user = get_current_user()
     messages = (Message
                 .select()
-                .where(Message.user << user.following())
+                .where((Message.user << user.following())
+                       | (Message.user == user))
                 .order_by(Message.pub_date.desc()))
     return object_list('private_messages.html', messages, 'message_list')
 
@@ -328,10 +341,23 @@ def create():
             user=user,
             text=request.form['text'],
             pub_date=datetime.datetime.now())
+        file = request.files.get('file')
+        if file:
+            print(file.name)
+            ext = file.name.split('.')[-1]
+            upload = Upload.create(
+                type=ext,
+                message=message
+            )
+            file.save(UPLOAD_DIRECTORY + str(upload.id) + '.' + ext)
         flash('Your message has been posted successfully')
         return redirect(url_for('user_detail', username=user.username))
 
     return render_template('create.html')
+
+@app.route('/uploads/<id>.jpg')
+def uploads(id, type='jpg'):
+    return send_from_directory(UPLOAD_DIRECTORY, id + '.' + type)
 
 @app.route('/ajax/username_availability/<username>')
 def username_availability(username):

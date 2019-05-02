@@ -83,3 +83,8 @@ function requestUsernameAvailability(u, callback){
   }
   xhr.send();
 }
+
+function attachFileInput(){
+  var fileInput = document.getElementById('fileInputContainer');
+  fileInput.innerHTML = '<input type="file" accept="image/*" name="file">';
+}
