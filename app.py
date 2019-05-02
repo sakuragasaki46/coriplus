@@ -343,8 +343,8 @@ def create():
             pub_date=datetime.datetime.now())
         file = request.files.get('file')
         if file:
-            print(file.name)
-            ext = file.name.split('.')[-1]
+            print('Uploading', file.filename)
+            ext = file.filename.split('.')[-1]
             upload = Upload.create(
                 type=ext,
                 message=message
