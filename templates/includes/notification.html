@@ -1,0 +1,10 @@
+{% set detail = json.loads(notification.detail) %}
+
+{% if notification.type == 'follow' %}
+{% set user = User[detail['user']] %}
+<p><a href="/+{{ user.username }}">{{ user.username }}</a> started following you.</p>
+{% else %}
+<p>Unknown Notification</p>
+{% endif %}
+
+<small>{{ notification.pub_date | human_date }}</small>

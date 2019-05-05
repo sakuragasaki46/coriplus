@@ -3,7 +3,7 @@ from flask import (
     send_from_directory, session, url_for)
 import hashlib
 from peewee import *
-import datetime, time, re, os, string
+import datetime, time, re, os, sys, string, json
 from functools import wraps
 
 DATABASE = 'coriplus.sqlite'
@@ -59,6 +59,13 @@ class User(BaseModel):
                     (Relationship.to_user == user))
                 .exists())
 
+    def unseen_notification_count(self):
+        return len(Notification
+                .select()
+                .where(
+                    Notification.target == self
+                ))
+
 # A single public message.
 class Message(BaseModel):
     # The type of the message. 
@@ -98,9 +105,16 @@ class Upload(BaseModel):
     def filename(self):
         return str(self.id) + '.' + self.type
 
+class Notification(BaseModel):
+    type = TextField()
+    target = ForeignKeyField(User, backref='notifications')
+    detail = TextField()
+    pub_date = DateTimeField()
+    seen = IntegerField(default=0)
+
 def create_tables():
     with database:
-        database.create_tables([User, Message, Relationship, Upload])
+        database.create_tables([User, Message, Relationship, Upload, Notification])
     if not os.path.isdir(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
 
@@ -192,6 +206,33 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return inner
+
+def push_notification(type, target, **kwargs):
+    try:
+        if isinstance(target, str):
+            target = User.get(User.username == target)
+        Notification.create(
+            type=type,
+            target=target,
+            detail=json.dumps(kwargs),
+            pub_date=datetime.datetime.now()
+        )
+    except Exception:
+        sys.excepthook(*sys.exc_info())
+
+def unpush_notification(type, target, **kwargs):
+    try:
+        if isinstance(target, str):
+            target = User.get(User.username == target)
+        (Notification
+         .delete()
+         .where(
+            (Notification.type == type) &
+            (Notification.target == target) &
+            (Notification.detail == json.dumps(kwargs))
+        ))
+    except Exception:
+        sys.excepthook(*sys.exc_info())
 
 # given a template and a SelectQuery instance, render a paginated list of
 # objects from the query inside the template
@@ -305,30 +346,34 @@ def user_detail(username):
 @app.route('/+<username>/follow/', methods=['POST'])
 @login_required
 def user_follow(username):
+    cur_user = get_current_user()
     user = get_object_or_404(User, User.username == username)
     try:
         with database.atomic():
             Relationship.create(
-                from_user=get_current_user(),
+                from_user=cur_user,
                 to_user=user,
                 created_date=datetime.datetime.now())
     except IntegrityError:
         pass
 
     flash('You are following %s' % user.username)
+    push_notification('follow', user, user=cur_user.id)
     return redirect(url_for('user_detail', username=user.username))
 
 @app.route('/+<username>/unfollow/', methods=['POST'])
 @login_required
 def user_unfollow(username):
+    cur_user = get_current_user()
     user = get_object_or_404(User, User.username == username)
     (Relationship
      .delete()
      .where(
-         (Relationship.from_user == get_current_user()) &
+         (Relationship.from_user == cur_user) &
          (Relationship.to_user == user))
      .execute())
     flash('You are no longer following %s' % user.username)
+    unpush_notification('follow', user, user=cur_user.id)
     return redirect(url_for('user_detail', username=user.username))
 
 
@@ -355,6 +400,16 @@ def create():
         return redirect(url_for('user_detail', username=user.username))
 
     return render_template('create.html')
+
+@app.route('/notifications/')
+@login_required
+def notifications():
+    user = get_current_user()
+    notifications = (Notification
+                     .select()
+                     .where(Notification.target == user)
+                     .order_by(Notification.pub_date.desc()))
+    return object_list('notifications.html', notifications, 'notification_list', json=json, User=User)
 
 @app.route('/uploads/<id>.jpg')
 def uploads(id, type='jpg'):
