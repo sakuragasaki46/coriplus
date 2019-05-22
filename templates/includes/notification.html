@@ -3,6 +3,9 @@
 {% if notification.type == 'follow' %}
 {% set user = User[detail['user']] %}
 <p><a href="/+{{ user.username }}">{{ user.username }}</a> started following you.</p>
+{% elif notification.type == 'mention' %}
+{% set user = User[detail['user']] %}
+<p><a href="/+{{ user.username }}">{{ user.username }}</a> mentioned you in a message.</p>
 {% else %}
 <p>Unknown Notification</p>
 {% endif %}

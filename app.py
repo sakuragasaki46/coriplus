@@ -63,7 +63,7 @@ class User(BaseModel):
         return len(Notification
                 .select()
                 .where(
-                    Notification.target == self
+                    (Notification.target == self) & (Notification.seen == 0)
                 ))
 
 # A single public message.
@@ -280,6 +280,13 @@ def private_timeline():
                 .order_by(Message.pub_date.desc()))
     return object_list('private_messages.html', messages, 'message_list')
 
+@app.route('/explore/')
+def public_timeline():
+    messages = (Message
+                .select()
+                .order_by(Message.pub_date.desc()))
+    return object_list('explore.html', messages, 'message_list')
+
 @app.route('/signup/', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST' and request.form['username']:
@@ -409,6 +416,12 @@ def notifications():
                      .select()
                      .where(Notification.target == user)
                      .order_by(Notification.pub_date.desc()))
+
+    with database.atomic():
+        (Notification
+         .update(seen=1)
+         .where((Notification.target == user) & (Notification.seen == 0))
+         .execute())
     return object_list('notifications.html', notifications, 'notification_list', json=json, User=User)
 
 @app.route('/uploads/<id>.jpg')

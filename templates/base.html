@@ -12,8 +12,13 @@
         <a href="{{ url_for('login') }}">log in</a>
         <a href="{{ url_for('register') }}">register</a>
       {% else %}
-        <a href="{{ url_for('user_detail', username=current_user.username) }}">{{ current_user.username }}</a> - 
-        <a href="{# url_for('public_timeline') #}">explore</a>
+        <a href="{{ url_for('user_detail', username=current_user.username) }}">{{ current_user.username }}</a>
+        {% set notification_count = current_user.unseen_notification_count() %}
+        {% if notification_count > 0 %}
+        <a href="{{ url_for('notifications') }}">({{ notification_count }})</a>
+        {% endif %}
+        - 
+        <a href="{{ url_for('public_timeline') }}">explore</a>
         <a href="{{ url_for('create') }}">create</a>
         <a href="{{ url_for('logout') }}">log out</a>
       {% endif %}
