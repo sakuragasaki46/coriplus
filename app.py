@@ -6,6 +6,8 @@ from peewee import *
 import datetime, time, re, os, sys, string, json
 from functools import wraps
 
+__version__ = '0.4-dev'
+
 DATABASE = 'coriplus.sqlite'
 DEBUG = True
 SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
@@ -423,6 +425,10 @@ def notifications():
          .where((Notification.target == user) & (Notification.seen == 0))
          .execute())
     return object_list('notifications.html', notifications, 'notification_list', json=json, User=User)
+
+@app.route('/about/')
+def about():
+    return render_template('about.html', version=__version__)
 
 @app.route('/uploads/<id>.jpg')
 def uploads(id, type='jpg'):
