@@ -253,7 +253,7 @@ class Visibility(object):
         for i in self.query:
             if i.is_visible(self.is_public_timeline):
                 if counter in pages_no:
-                    yield i
+                    return i
                 counter += 1
 
 # flask provides a "session" object, which allows us to store information across

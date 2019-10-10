@@ -11,6 +11,6 @@ parser.add_argument('-p', '--port', type=int, default=5000,
 from app import app, create_tables
 
 if __name__ == '__main__':
-    args = argparse.parse_args()
+    args = parser.parse_args()
     create_tables()
     app.run(port=args.port)

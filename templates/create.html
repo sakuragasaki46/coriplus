@@ -6,7 +6,12 @@
       <dt>Message:</dt>
       <dd><textarea name="text" placeholder="What's happening?" class="create_text">{{ request.args['preload'] }}</textarea></dd>
       <dd id="fileInputContainer"><a href="javascript:attachFileInput();">Add a file...</a>
-      <dd><small>Messages are public and can be seen on your profile as well as public timeline.</small></dd>
+      <dd><select name="privacy">
+        <option value="0">Public - everyone in your profile or public timeline</option>
+        <option value="1">Unlisted - everyone in your profile, hide from public timeline</option>
+        <option value="2">Friends - only people you follow each other</option>
+        <option value="3">Only you</option>
+      </select></dd>
       <dd><input type="submit" value="Create" /></dd>
     </dl>
   </form>
