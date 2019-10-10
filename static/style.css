@@ -11,4 +11,6 @@ body{margin:0}
 .create_text{width:100%;height:8em}
 .follow_button,input[type="submit"]{background-color:#ff3018;color:white;border-radius:3px;border:1px solid #ff3018}
 .follow_button.following{background-color:transparent;color:#ff3018;border-color:#ff3018}
-
+.copyright{font-size:smaller;text-align:center;color:#808080}
+.copyright ul{list-style:none;padding:0}
+.copyright ul > li{padding:0 3px}
