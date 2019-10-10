@@ -407,7 +407,6 @@ def create():
             file.save(UPLOAD_DIRECTORY + str(upload.id) + '.' + ext)
         flash('Your message has been posted successfully')
         return redirect(url_for('user_detail', username=user.username))
-
     return render_template('create.html')
 
 @app.route('/notifications/')

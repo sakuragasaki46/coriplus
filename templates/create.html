@@ -4,8 +4,9 @@
   <form action="{{ url_for('create') }}" method="POST" enctype="multipart/form-data">
     <dl>
       <dt>Message:</dt>
-      <dd><textarea name="text" placeholder="What's happening?"></textarea></dd>
+      <dd><textarea name="text" placeholder="What's happening?" class="create_text">{{ request.args['preload'] }}</textarea></dd>
       <dd id="fileInputContainer"><a href="javascript:attachFileInput();">Add a file...</a>
+      <dd><small>Messages are public and can be seen on your profile as well as public timeline.</small></dd>
       <dd><input type="submit" value="Create" /></dd>
     </dl>
   </form>
