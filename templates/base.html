@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Cori+</title>
+    {% set site_name = "Cori+" %}
+    <title>{{ site_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="/static/style.css">
   </head>
   <body>
     <div class="header">
-      <h1><a href="{{ url_for('homepage') }}">Cori+</a></h1>
+      <h1><a href="{{ url_for('homepage') }}">{{ site_name }}</a></h1>
       <div class="metanav">
       {% if not session.logged_in %}
         <a href="{{ url_for('login') }}">log in</a>
@@ -26,7 +28,7 @@
     </div>
     <div class="content">
       {% for message in get_flashed_messages() %}
-        <div class=flash>{{ message }}</div>
+        <div class="flash">{{ message }}</div>
       {% endfor %}
       {% block body %}{% endblock %}
     </div>

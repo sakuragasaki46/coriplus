@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
-  <h2>Join Cori+</h2>
+  <h2>Join {{ site_name }}</h2>
   <form action="{{ url_for('register') }}" method="post">
     <dl>
       <dt>Username:</dt>
@@ -8,9 +8,7 @@
       <dt>Password:</dt>
       <dd><input type="password" name="password"></dd>
       <dt>Email:</dt>
-      <dd><input type="text" name="email">
-        <p><small>(used for gravatar)</small></p>
-      </dd>
+      <dd><input type="text" name="email"></dd>
       <dt>Birthday:
       <dd><input type="text" name="birthday" placeholder="yyyy-mm-dd">
       <dd><input type="submit" value="Join">
