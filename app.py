@@ -8,14 +8,10 @@ from functools import wraps
 
 __version__ = '0.4-dev'
 
-DATABASE = 'coriplus.sqlite'
-DEBUG = True
-SECRET_KEY = 'hin6bab8ge25*r=x&amp;+5$0kn=-#log$pt^#@vrqjld!^2ci@g*b'
-
 app = Flask(__name__)
-app.config.from_object(__name__)
+app.config.from_pyfile('config.py')
 
-database = SqliteDatabase(DATABASE)
+database = SqliteDatabase(app.config['DATABASE'])
 
 class BaseModel(Model):
     class Meta:
