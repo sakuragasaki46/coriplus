@@ -391,7 +391,7 @@ def register():
 
             # mark the user as being 'authenticated' by setting the session vars
             auth_user(user)
-            return redirect(url_for('homepage'))
+            return redirect(request.args.get('next','/'))
 
         except IntegrityError:
             flash('That username is already taken')
@@ -402,23 +402,27 @@ def register():
 def login():
     if request.method == 'POST' and request.form['username']:
         try:
+            username = request.form['username']
             pw_hash = pwdhash(request.form['password'])
-            user = User.get(
-                (User.username == request.form['username']) &
-                (User.password == pw_hash))
+            if '@' in username:
+                user = User.get(User.email == username)
+            else:
+                user = User.get(User.username == username)
+            if user.password != pw_hash:
+                flash('The password entered is incorrect.')
+                return render_template('login.html')
         except User.DoesNotExist:
-            flash('The password entered is incorrect')
+            flash('A user with this username or email does not exist.')
         else:
             auth_user(user)
-            return redirect(url_for('homepage'))
-
+            return redirect(request.args.get('next', '/'))
     return render_template('login.html')
 
 @app.route('/logout/')
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
-    return redirect(url_for('homepage'))
+    return redirect(request.args.get('next','/'))
 
 @app.route('/+<username>/')
 def user_detail(username):

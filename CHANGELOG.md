@@ -7,6 +7,7 @@
 * Improved repository with better README, CHANGELOG, requirements.txt and option to specify port on run_example.py
 * Split app config from app module.
 * Added the capability to specify post privacy. Now you can choose to post your message to the public, to friends (mutual followers) or only you.
+* Now Python 3 is enforced.
 
 ## 0.3
 
