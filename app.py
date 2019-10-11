@@ -6,7 +6,7 @@ from peewee import *
 import datetime, time, re, os, sys, string, json
 from functools import wraps
 
-__version__ = '0.4-dev'
+__version__ = '0.4.0'
 
 # we want to support Python 3 only.
 # Python 2 has too many caveats.
@@ -311,7 +311,8 @@ def unpush_notification(type, target, **kwargs):
             (Notification.type == type) &
             (Notification.target == target) &
             (Notification.detail == json.dumps(kwargs))
-        ))
+         )
+         .execute())
     except Exception:
         sys.excepthook(*sys.exc_info())
 
@@ -537,6 +538,19 @@ def notifications():
 @app.route('/about/')
 def about():
     return render_template('about.html', version=__version__)
+
+# The two following routes are mandatory by law.
+@app.route('/terms/')
+def terms():
+    return render_template('terms.html')
+
+@app.route('/privacy/')
+def privacy():
+    return render_template('privacy.html')
+
+@app.route('/robots.txt')
+def robots_txt():
+    return send_from_directory(os.getcwd(), 'robots.txt')
 
 @app.route('/uploads/<id>.jpg')
 def uploads(id, type='jpg'):

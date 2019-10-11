@@ -1,3 +1,4 @@
+body,button,input,select,textarea{font-family:'Segoe UI',Arial,Helvetica,sans-serif}
 body{margin:0}
 .header{padding:12px;color:white;background-color:#ff3018}
 .content{padding:12px}
@@ -12,5 +13,6 @@ body{margin:0}
 .follow_button,input[type="submit"]{background-color:#ff3018;color:white;border-radius:3px;border:1px solid #ff3018}
 .follow_button.following{background-color:transparent;color:#ff3018;border-color:#ff3018}
 .copyright{font-size:smaller;text-align:center;color:#808080}
+.copyright a:link,.copyright a:visited{color:#31559e}
 .copyright ul{list-style:none;padding:0}
 .copyright ul > li{padding:0 3px}
