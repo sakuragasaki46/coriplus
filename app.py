@@ -177,6 +177,8 @@ def is_username(username):
         return False
     return all(x and set(x) < _username_characters for x in username_splitted)
 
+_mention_re = r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)'
+
 def validate_birthday(date):
     today = datetime.date.today()
     if today.year - date.year > 13:
@@ -322,6 +324,8 @@ def object_list(template_name, qr, var_name='object_list', **kwargs):
     kwargs[var_name] = qr.paginate(kwargs['page'])
     return render_template(template_name, **kwargs)
 
+### WEB ###
+
 @app.before_request
 def before_request():
     g.db = database
@@ -431,7 +435,7 @@ def user_detail(username):
     # get all the users messages ordered newest-first -- note how we're accessing
     # the messages -- user.message_set.  could also have written it as:
     # Message.select().where(Message.user == user)
-    messages = Visibility(user.messages.order_by(Message.pub_date.desc()), True)
+    messages = Visibility(user.messages.order_by(Message.pub_date.desc()))
     return object_list('user_detail.html', messages, 'message_list', user=user)
 
 @app.route('/+<username>/follow/', methods=['POST'])
@@ -474,14 +478,16 @@ def user_unfollow(username):
 def create():
     user = get_current_user()
     if request.method == 'POST' and request.form['text']:
+        text = request.form['text']
+        privacy = int(request.form.get('privacy', '0'))
         message = Message.create(
             type='text',
             user=user,
-            text=request.form['text'],
+            text=text,
             pub_date=datetime.datetime.now())
         MessagePrivacy.create(
             message=message,
-            value=request.form.get('privacy', '0')
+            value=privacy
         )
         file = request.files.get('file')
         if file:
@@ -492,6 +498,22 @@ def create():
                 message=message
             )
             file.save(UPLOAD_DIRECTORY + str(upload.id) + '.' + ext)
+        # create mentions
+        mention_usernames = set()
+        for mo in re.finditer(_mention_re, text):
+            mention_usernames.add(mo.group(1))
+        # to avoid self mention
+        mention_usernames.difference_update({user.username})
+        for u in mention_usernames:
+            try:
+                mention_user = User.get(User.username == u)
+                if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
+                        (privacy == MSGPRV_FRIENDS and
+                        mention_user.is_following(user) and 
+                        user.is_following(mention_user)):
+                    push_notification('mention', mention_user, user=user.id)
+            except User.DoesNotExist:
+                pass
         flash('Your message has been posted successfully')
         return redirect(url_for('user_detail', username=user.username))
     return render_template('create.html')
@@ -540,7 +562,7 @@ def username_availability(username):
 @app.template_filter()
 def enrich(s):
     '''Filter for mentioning users.'''
-    return Markup(re.sub(r'\+([A-Za-z0-9_]+)', r'<a href="/+\1">\1</a>', s))
+    return Markup(re.sub(_mention_re, r'<a href="/+\1">\1</a>', s))
 
 @app.template_filter('is_following')
 def is_following(from_user, to_user):

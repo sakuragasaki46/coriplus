@@ -13,5 +13,5 @@
   {% elif message.privacy == 3 %} Only me
   {% endif %}
   -
-  <time datetime="{{ message.pub_date.isoformat() }}">{{ message.pub_date | human_date }}</time>
+  <time datetime="{{ message.pub_date.isoformat() }}" title="{{ message.pub_date.ctime() }}">{{ message.pub_date | human_date }}</time>
 </p>
