@@ -8,6 +8,11 @@ from functools import wraps
 
 __version__ = '0.4-dev'
 
+# we want to support Python 3 only.
+# Python 2 has too many caveats.
+if sys.version_info[0] < 3:
+    raise RuntimeError('Python 3 required')
+   
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
@@ -313,7 +318,7 @@ def unpush_notification(type, target, **kwargs):
 def object_list(template_name, qr, var_name='object_list', **kwargs):
     kwargs.update(
         page=int(request.args.get('page', 1)),
-        pages=qr.count() / 20 + 1)
+        pages=qr.count() // 20 + 1)
     kwargs[var_name] = qr.paginate(kwargs['page'])
     return render_template(template_name, **kwargs)
 
