@@ -2,12 +2,19 @@
 {% block body %}
   <h2>Login</h2>
   {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
-  <form action="{{ url_for('login') }}" method="POST">
+  <form method="POST">
     <dl>
       <dt>Username or email:
       <dd><input type="text" name="username">
       <dt>Password:
       <dd><input type="password" name="password">
+      <dt>Remember me for:
+      <dd><select name="remember">
+        <option value="0">This session only</option>
+        <option value="7">A week</option>
+        <option value="30">A month</option>
+        <option value="365">A year</option>
+      </select></dd>
       <dd><input type="submit" value="Login">
     </dl>
   </form>

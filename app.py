@@ -5,16 +5,26 @@ import hashlib
 from peewee import *
 import datetime, time, re, os, sys, string, json
 from functools import wraps
+import argparse
+from flask_login import LoginManager, login_user, logout_user, login_required
 
-__version__ = '0.4.0'
+__version__ = '0.5-dev'
 
 # we want to support Python 3 only.
 # Python 2 has too many caveats.
 if sys.version_info[0] < 3:
     raise RuntimeError('Python 3 required')
-   
+
+arg_parser = argparse.ArgumentParser()
+arg_parser.add_argument('--norun', action='store_true', 
+    help='Don\'t run the app. Useful for debugging.')
+arg_parser.add_argument('-p', '--port', type=int, default=5000,
+    help='The port where to run the app. Defaults to 5000')
+
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
+
+login_manager = LoginManager(app)
 
 ### DATABASE ###
 
@@ -38,6 +48,19 @@ class User(BaseModel):
     join_date = DateTimeField()
     # A disabled flag. 0 = active, 1 = disabled by user, 2 = banned
     is_disabled = IntegerField(default=0)
+
+    # Helpers for flask_login
+    def get_id(self):
+        return str(self.id)
+    @property
+    def is_active(self):
+        return not self.is_disabled
+    @property
+    def is_anonymous(self):
+        return False
+    @property
+    def is_authenticated(self):
+        return self == get_current_user()
 
     # it often makes sense to put convenience methods on model instances, for
     # example, "give me all the users this user is following":
@@ -71,27 +94,24 @@ class User(BaseModel):
                     (Notification.target == self) & (Notification.seen == 0)
                 ))
 
+# The message privacy values.
+MSGPRV_PUBLIC = 0 # everyone
+MSGPRV_UNLISTED = 1 # everyone, doesn't show up in public timeline
+MSGPRV_FRIENDS = 2 # only accounts which follow each other
+MSGPRV_ONLYME = 3 # only the poster
+
 # A single public message.
+# New in v0.5: removed type and info fields; added privacy field. 
 class Message(BaseModel):
-    # The type of the message. 
-    type = TextField()
     # The user who posted the message.
     user = ForeignKeyField(User, backref='messages')
     # The text of the message.
     text = TextField()
-    # Additional info (in JSON format)
-    # TODO: remove because it's dumb.
-    info = TextField(default='{}')
     # The posted date.
     pub_date = DateTimeField()
     # Info about privacy of the message.
-    @property
-    def privacy(self):
-        try:
-            return MessagePrivacy.get(MessagePrivacy.message == self).value
-        except MessagePrivacy.DoesNotExist:
-            # default to public
-            return MSGPRV_PUBLIC
+    privacy = IntegerField(default=MSGPRV_PUBLIC)
+
     def is_visible(self, is_public_timeline=False):
         user = self.user
         cur_user = get_current_user()
@@ -111,20 +131,6 @@ class Message(BaseModel):
             return user.is_following(cur_user) and cur_user.is_following(user)
         else:
             return False
-
-# The message privacy values.
-MSGPRV_PUBLIC = 0 # everyone
-MSGPRV_UNLISTED = 1 # everyone, doesn't show up in public timeline
-MSGPRV_FRIENDS = 2 # only accounts which follow each other
-MSGPRV_ONLYME = 3 # only the poster
-
-# Doing it into a separate table to don't worry about schema change.
-# Added in v0.4.
-class MessagePrivacy(BaseModel):
-    # The message.
-    message = ForeignKeyField(Message, primary_key=True)
-    # The privacy value. Needs to be one of these above.
-    value = IntegerField()
 
 # this model contains two foreign keys to user -- it essentially allows us to
 # model a "many-to-many" relationship between users.  by querying and joining
@@ -162,7 +168,7 @@ class Notification(BaseModel):
 def create_tables():
     with database:
         database.create_tables([
-            User, Message, Relationship, Upload, Notification, MessagePrivacy])
+            User, Message, Relationship, Upload, Notification])
     if not os.path.isdir(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
 
@@ -263,30 +269,14 @@ class Visibility(object):
                     yield i
                 counter += 1
 
-# flask provides a "session" object, which allows us to store information across
-# requests (stored by default in a secure cookie).  this function allows us to
-# mark a user as being logged-in by setting some values in the session data:
-def auth_user(user):
-    session['logged_in'] = True
-    session['user_id'] = user.id
-    session['username'] = user.username
-    flash('You are logged in as %s' % (user.username))
-
 # get the user from the session
+# changed in 0.5 to comply with flask_login
 def get_current_user():
-    if session.get('logged_in'):
-        return User.get(User.id == session['user_id'])
+    user_id = session.get('user_id')
+    if user_id:
+        return User[user_id]
 
-# view decorator which indicates that the requesting user must be authenticated
-# before they can access the view.  it checks the session to see if they're
-# logged in, and if not redirects them to the login view.
-def login_required(f):
-    @wraps(f)
-    def inner(*args, **kwargs):
-        if not session.get('logged_in'):
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return inner
+login_manager.login_view = 'login'
 
 def push_notification(type, target, **kwargs):
     try:
@@ -337,9 +327,9 @@ def after_request(response):
     g.db.close()
     return response
 
-@app.context_processor
-def _inject_user():
-    return {'current_user': get_current_user()}
+@login_manager.user_loader
+def _inject_user(userid):
+    return User[userid]
 
 @app.errorhandler(404)
 def error_404(body):
@@ -347,7 +337,7 @@ def error_404(body):
 
 @app.route('/')
 def homepage():
-    if session.get('logged_in'):
+    if get_current_user():
         return private_timeline()
     else:
         return render_template('homepage.html')
@@ -395,7 +385,7 @@ def register():
                     join_date=datetime.datetime.now())
 
             # mark the user as being 'authenticated' by setting the session vars
-            auth_user(user)
+            login_user(user)
             return redirect(request.args.get('next','/'))
 
         except IntegrityError:
@@ -419,13 +409,18 @@ def login():
         except User.DoesNotExist:
             flash('A user with this username or email does not exist.')
         else:
-            auth_user(user)
+            remember_for = int(request.form['remember'])
+            if remember_for > 0:
+                login_user(user, remember=True, 
+                    duration=datetime.timedelta(days=remember_for))
+            else:
+                login_user(user)
             return redirect(request.args.get('next', '/'))
     return render_template('login.html')
 
 @app.route('/logout/')
 def logout():
-    session.pop('logged_in', None)
+    logout_user()
     flash('You were logged out')
     return redirect(request.args.get('next','/'))
 
@@ -437,6 +432,7 @@ def user_detail(username):
     # the messages -- user.message_set.  could also have written it as:
     # Message.select().where(Message.user == user)
     messages = Visibility(user.messages.order_by(Message.pub_date.desc()))
+    # TODO change to "profile.html"
     return object_list('user_detail.html', messages, 'message_list', user=user)
 
 @app.route('/+<username>/follow/', methods=['POST'])
@@ -455,7 +451,6 @@ def user_follow(username):
 
     flash('You are following %s' % user.username)
     push_notification('follow', user, user=cur_user.id)
-    # TODO change to "profile.html"
     return redirect(url_for('user_detail', username=user.username))
 
 @app.route('/+<username>/unfollow/', methods=['POST'])
@@ -485,11 +480,8 @@ def create():
             type='text',
             user=user,
             text=text,
-            pub_date=datetime.datetime.now())
-        MessagePrivacy.create(
-            message=message,
-            value=privacy
-        )
+            pub_date=datetime.datetime.now(),
+            privacy=privacy)
         file = request.files.get('file')
         if file:
             print('Uploading', file.filename)
@@ -558,8 +550,9 @@ def uploads(id, type='jpg'):
 
 @app.route('/ajax/username_availability/<username>')
 def username_availability(username):
-    if session.get('logged_in'):
-        current = get_current_user().username
+    current = get_current_user()
+    if current:
+        current = current.username
     else:
         current = None
     is_valid = is_username(username)
@@ -585,5 +578,7 @@ def is_following(from_user, to_user):
 
 # allow running from the command line
 if __name__ == '__main__':
+    args = arg_parser.parse_args()
     create_tables()
-    app.run()
+    if not args.norun:
+        app.run(port=args.port)

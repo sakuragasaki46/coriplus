@@ -1,2 +1,3 @@
-flask
-peewee
+flask>=1.1.1
+peewee>=3.11.1
+flask-login>=0.4.1

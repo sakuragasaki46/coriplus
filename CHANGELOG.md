@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.4
+## 0.5-dev
+
+* Removed `type` and `info` fields from `Message` table and merged `privacy` field, previously into a separate table, into that table. In order to make the app work, when upgrading you should run the `migrate_0_4_to_0_5.py` script. 
+* Added flask-login dependency. Now, user logins can be persistent up to 365 days. 
+
+## 0.4.0
 
 * Adding quick mention. You can now create a message mentioning another user in one click.
 * Added mention notifications.
