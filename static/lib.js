@@ -88,3 +88,13 @@ function attachFileInput(){
   var fileInput = document.getElementById('fileInputContainer');
   fileInput.innerHTML = '<input type="file" accept="image/*" name="file">';
 }
+
+function showHideMessageOptions(id){
+  var msgElem = document.getElementById(id);
+  var options = msgElem.getElementsByClassName('message-options')[0];
+  if(options.style.display == 'block'){
+    options.style.display = 'none';
+  } else {
+    options.style.display = 'block';
+  }
+}

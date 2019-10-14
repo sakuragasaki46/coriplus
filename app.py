@@ -477,7 +477,6 @@ def create():
         text = request.form['text']
         privacy = int(request.form.get('privacy', '0'))
         message = Message.create(
-            type='text',
             user=user,
             text=text,
             pub_date=datetime.datetime.now(),
@@ -510,6 +509,47 @@ def create():
         flash('Your message has been posted successfully')
         return redirect(url_for('user_detail', username=user.username))
     return render_template('create.html')
+
+@app.route('/edit/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit(id):
+    user = get_current_user()
+    message = get_object_or_404(Message, Message.id == id)
+    if message.user != user:
+        abort(404)
+    if request.method == 'POST' and (request.form['text'] != message.text or
+            request.form['privacy'] != message.privacy):
+        text = request.form['text']
+        privacy = int(request.form.get('privacy', '0'))
+        Message.update(
+            text=text,
+            privacy=privacy,
+            pub_date=datetime.datetime.now()
+        ).where(Message.id == id).execute()
+        # edit uploads (skipped for now)
+        # create mentions
+        mention_usernames = set()
+        for mo in re.finditer(_mention_re, text):
+            mention_usernames.add(mo.group(1))
+        # to avoid self mention
+        mention_usernames.difference_update({user.username})
+        for u in mention_usernames:
+            try:
+                mention_user = User.get(User.username == u)
+                if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
+                        (privacy == MSGPRV_FRIENDS and
+                        mention_user.is_following(user) and 
+                        user.is_following(mention_user)):
+                    push_notification('mention', mention_user, user=user.id)
+            except User.DoesNotExist:
+                pass
+        flash('Your message has been edited successfully')
+        return redirect(url_for('user_detail', username=user.username))
+    return render_template('edit.html', message=message)
+
+#@app.route('/delete/<int:id>', methods=['GET', 'POST'])
+#def confirm_delete(id):
+#    return render_template('confirm_delete.html')
 
 @app.route('/notifications/')
 @login_required

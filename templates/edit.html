@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+  <h2>Edit</h2>
+  <form action="{{ url_for('edit', id=message.id) }}" method="POST" enctype="multipart/form-data">
+    <dl>
+      <dt>Message:</dt>
+      <dd><textarea name="text" required="" class="create_text">{{ message.text }}</textarea></dd>
+      <dd><select name="privacy">
+        <option value="0"{% if message.privacy == '0' %} selected{% endif %}>Public - everyone in your profile or public timeline</option>
+        <option value="1"{% if message.privacy == '1' %} selected{% endif %}>Unlisted - everyone in your profile, hide from public timeline</option>
+        <option value="2"{% if message.privacy == '2' %} selected{% endif %}>Friends - only people you follow each other</option>
+        <option value="3"{% if message.privacy == '3' %} selected{% endif %}>Only you</option>
+      </select></dd>
+      <dd><input type="submit" value="Save" /></dd>
+    </dl>
+  </form>
+{% endblock %}

@@ -5,6 +5,7 @@
 * Removed `type` and `info` fields from `Message` table and merged `privacy` field, previously into a separate table, into that table. In order to make the app work, when upgrading you should run the `migrate_0_4_to_0_5.py` script. 
 * Added flask-login dependency. Now, user logins can be persistent up to 365 days. 
 * Rewritten `enrich` filter, correcting a serious security flaw. The new filter uses a tokenizer and escapes all non-markup text. Plus, now the `+` of the mention is visible, but weakened; newlines are now visible in the message. 
+* Now you can edit or change privacy to messages after they are published. After a message it's edited, the date and time of the message is changed.
 
 ## 0.4.0
 
