@@ -6,6 +6,7 @@
 * Added flask-login dependency. Now, user logins can be persistent up to 365 days. 
 * Rewritten `enrich` filter, correcting a serious security flaw. The new filter uses a tokenizer and escapes all non-markup text. Plus, now the `+` of the mention is visible, but weakened; newlines are now visible in the message. 
 * Now you can edit or change privacy to messages after they are published. After a message it's edited, the date and time of the message is changed.
+* Fixed a bug when uploading.
 
 ## 0.4.0
 

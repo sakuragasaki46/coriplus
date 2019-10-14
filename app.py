@@ -149,6 +149,10 @@ class Relationship(BaseModel):
 
 
 UPLOAD_DIRECTORY = 'uploads/'
+
+# fixing directory name because of imports from other directory
+if __name__ != '__main__':
+    UPLOAD_DIRECTORY = os.path.join(os.path.dirname(__file__), UPLOAD_DIRECTORY)
 class Upload(BaseModel):
     # the extension of the media
     type = TextField()
