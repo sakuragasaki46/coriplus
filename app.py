@@ -320,7 +320,10 @@ def object_list(template_name, qr, var_name='object_list', **kwargs):
 @app.before_request
 def before_request():
     g.db = database
-    g.db.connect()
+    try:
+        g.db.connect()
+    except OperationalError:
+        sys.stderr.write('database connected twice.\n')
 
 @app.after_request
 def after_request(response):
@@ -584,7 +587,7 @@ def privacy():
 def robots_txt():
     return send_from_directory(os.getcwd(), 'robots.txt')
 
-@app.route('/uploads/<id>.jpg')
+@app.route('/uploads/<id>.<type>')
 def uploads(id, type='jpg'):
     return send_from_directory(UPLOAD_DIRECTORY, id + '.' + type)
 
