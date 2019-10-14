@@ -3,7 +3,7 @@ from flask import (
     send_from_directory, session, url_for)
 import hashlib
 from peewee import *
-import datetime, time, re, os, sys, string, json
+import datetime, time, re, os, sys, string, json, html
 from functools import wraps
 import argparse
 from flask_login import LoginManager, login_user, logout_user, login_required
@@ -566,10 +566,44 @@ def username_availability(username):
         is_available = False
     return jsonify({'is_valid':is_valid, 'is_available':is_available, 'status':'ok'})
 
+_enrich_symbols = [
+    (r'\n', 'NEWLINE'),
+    (r'https?://(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|\[[A-Fa-f0-9:]+\])'
+     r'(?::\d+)?(?:/.*)?(?:\?.*)?(?:#.*)?', 'URL'),
+    (_mention_re, 'MENTION'),
+    (r'[^\n+]+', 'TEXT'),
+    (r'.', 'TEXT')
+]
+
+def _tokenize(characters, table):
+    pos = 0
+    tokens = []
+    while pos < len(characters):
+        mo = None
+        for pattern, tag in table:
+            mo = re.compile(pattern).match(characters, pos)
+            if mo:
+                if tag:
+                    text = mo.group(0)
+                    tokens.append((text, tag))
+                break
+        pos = mo.end(0)
+    return tokens
+
 @app.template_filter()
 def enrich(s):
-    '''Filter for mentioning users.'''
-    return Markup(re.sub(_mention_re, r'<a href="/+\1">\1</a>', s))
+    tokens = _tokenize(s, _enrich_symbols)
+    r = []
+    for text, tag in tokens:
+        if tag == 'TEXT':
+            r.append(html.escape(text))
+        elif tag == 'URL':
+            r.append('<a href="{0}">{0}</a>'.format(html.escape(text)))
+        elif tag == 'MENTION':
+            r.append('<span class="weak">+</span><a href="/{0}">{1}</a>'.format(text, text.lstrip('+')))
+        elif tag == 'NEWLINE':
+            r.append('<br>')
+    return Markup(''.join(r))
 
 @app.template_filter('is_following')
 def is_following(from_user, to_user):
