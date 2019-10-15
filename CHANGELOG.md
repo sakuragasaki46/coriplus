@@ -7,6 +7,7 @@
 * Rewritten `enrich` filter, correcting a serious security flaw. The new filter uses a tokenizer and escapes all non-markup text. Plus, now the `+` of the mention is visible, but weakened; newlines are now visible in the message. 
 * Now you can edit or change privacy to messages after they are published. After a message it's edited, the date and time of the message is changed.
 * Fixed a bug when uploading.
+* Moved the site name, previously hard-coded into templates, into `config.py`.
 
 ## 0.4.0
 

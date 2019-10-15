@@ -620,7 +620,7 @@ def username_availability(username):
 _enrich_symbols = [
     (r'\n', 'NEWLINE'),
     (r'https?://(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|\[[A-Fa-f0-9:]+\])'
-     r'(?::\d+)?(?:/.*)?(?:\?.*)?(?:#.*)?', 'URL'),
+     r'(?::\d+)?(?:/[^\s]*)?(?:\?[^\s]*)?(?:#[^\s]*)?', 'URL'),
     (_mention_re, 'MENTION'),
     (r'[^h\n+]+', 'TEXT'),
     (r'.', 'TEXT')
