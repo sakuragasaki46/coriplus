@@ -334,6 +334,10 @@ def after_request(response):
     g.db.close()
     return response
 
+@app.context_processor
+def _inject_variables():
+    return {'site_name': app.config['SITE_NAME']}
+
 @login_manager.user_loader
 def _inject_user(userid):
     return User[userid]
@@ -618,7 +622,7 @@ _enrich_symbols = [
     (r'https?://(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|\[[A-Fa-f0-9:]+\])'
      r'(?::\d+)?(?:/.*)?(?:\?.*)?(?:#.*)?', 'URL'),
     (_mention_re, 'MENTION'),
-    (r'[^\n+]+', 'TEXT'),
+    (r'[^h\n+]+', 'TEXT'),
     (r'.', 'TEXT')
 ]
 
