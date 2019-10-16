@@ -1,4 +1,5 @@
 coriplus.sqlite
+coriplus-*.sqlite
 __pycache__/
 uploads/
 *.pyc
