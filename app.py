@@ -8,7 +8,7 @@ from functools import wraps
 import argparse
 from flask_login import LoginManager, login_user, logout_user, login_required
 
-__version__ = '0.5-dev'
+__version__ = '0.6-dev'
 
 # we want to support Python 3 only.
 # Python 2 has too many caveats.
