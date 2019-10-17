@@ -609,8 +609,17 @@ def edit_profile():
     if request.method == 'POST':
         user = get_current_user()
         username = request.form['username']
+        if not username:
+            # prevent username to be set to empty
+            username = user.username
         if username != user.username:
             User.update(username=username).where(User.id == user.id).execute()
+        UserProfile.update(
+            full_name=request.form['full_name'] or username,
+            biography=request.form['biography'],
+            website=request.form['website']
+        ).where(UserProfile.user == user).execute()
+        return redirect(url_for('user_detail', username=username))
     return render_template('edit_profile.html')
 
 @app.route('/notifications/')
