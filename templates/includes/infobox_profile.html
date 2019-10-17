@@ -1,0 +1,30 @@
+{% set profile = user.profile %}
+<div class="infobox">
+  <h3>{{ profile.full_name }}</h3>
+  <p>{{ profile.biography|enrich }}</p>
+  {% if profile.location %}
+    <p><span class="weak">Location:</span> {{ profile.location }}</p>
+  {% endif %}
+  {% if profile.year %}
+    <p><span class="weak">Year:</span> {{ profile.year }}</p>
+  {% endif %}
+  {% if profile.website %}
+    <p><span class="weak">Website:</span> {{ profile.website|urlize }}</p>
+  {% endif %}
+  {% if profile.instagram %}
+    <p><span class="weak">Instagram:</span> <a href="https://www.instagram.com/{{ profile.instagram }}">{{ profile.instagram }}</a></p>
+  {% endif %}
+  {% if profile.facebook %}
+    <p><span class="weak">Facebook:</span> <a href="https://facebook.com/{{ profile.facebook }}">{{ profile.facebook }}</a></p>
+  {% endif %}
+  <p>
+    <strong>{{ user.messages|count }}</strong> messages
+    -
+    <strong>{{ user.followers()|count }}</strong> followers
+    -
+    <strong>{{ user.following()|count }}</strong> following
+  </p>
+  {% if user == current_user %}
+    <p><a href="/edit_profile/">Edit profile</a></p>
+  {% endif %}
+</div>

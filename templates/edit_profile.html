@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Edit Profile</h2>
+
+<form method="POST">
+  <dl>
+    <dt>Username:</dt>
+    <dd><input type="text" class="username_input" name="username" required value="{{ current_user.username }}" autocomplete="off"></dd>
+    <dd><input type="submit" value="Save"></dd>
+  </dl>
+</form>
+{% endblock %}

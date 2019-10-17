@@ -2,6 +2,13 @@
 
 ## 0.6-dev
 
+* Added user adminship. Admins are users with very high privileges. Adminship can be assigned only at script level (not from the web).
+* Now one's messages won't show up in public timeline.
+* Added user profile info. Now you can specify your full name, biography, location, birth year, website, Facebook and Instagram. Of course this is totally optional.
+* Added reference to terms of service and privacy policy on signup page.
+* When visiting signup page as logged in, user should confirm he wants to create another account in order to do it.
+* Moved user stats inside profile info.
+
 ## 0.5.0
 
 * Removed `type` and `info` fields from `Message` table and merged `privacy` field, previously into a separate table, into that table. In order to make the app work, when upgrading you should run the `migrate_0_4_to_0_5.py` script. 

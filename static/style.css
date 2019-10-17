@@ -8,7 +8,12 @@ body{margin:0}
 .metanav{float:right}
 .header h1{margin:0;display:inline-block}
 .flash{background-color:#ff9;border:yellow 1px solid}
+.infobox{padding:12px;border:#ccc 1px solid}
+@media (min-width:640px) {
+  .infobox{float:right;width:320px}
+}
 .weak{opacity:.5}
+.field_desc{display:block}
 .message-visual img{max-width:100%;max-height:8em}
 .message-options-showhide::before{content:'\2026'}
 .message-options{display:none}

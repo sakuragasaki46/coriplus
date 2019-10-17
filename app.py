@@ -93,6 +93,38 @@ class User(BaseModel):
                 .where(
                     (Notification.target == self) & (Notification.seen == 0)
                 ))
+    # user adminship is stored into a separate table; new in 0.6
+    @property
+    def is_admin(self):
+        return UserAdminship.select().where(UserAdminship.user == self).exists()
+    # user profile info; new in 0.6
+    @property
+    def profile(self):
+        # lazy initialization; I don't want (and don't know how) 
+        # to do schema changes.
+        try:
+            return UserProfile.get(UserProfile.user == self)
+        except UserProfile.DoesNotExist:
+            return UserProfile.create(user=self, full_name=self.username)
+
+# User adminship.
+# A very high privilege where users can review posts.
+# For very few users only; new in 0.6
+class UserAdminship(BaseModel):
+    user = ForeignKeyField(User, primary_key=True)
+
+# User profile.
+# Additional info for identifying users.
+# New in 0.6
+class UserProfile(BaseModel):
+    user = ForeignKeyField(User, primary_key=True)
+    full_name = TextField()
+    biography = TextField(default='')
+    location = IntegerField(null=True)
+    year = IntegerField(null=True)
+    website = TextField(null=True)
+    instagram = TextField(null=True)
+    facebook = TextField(null=True)
 
 # The message privacy values.
 MSGPRV_PUBLIC = 0 # everyone
@@ -118,11 +150,11 @@ class Message(BaseModel):
         privacy = self.privacy
         if user == cur_user:
             # short path
-            return True
+            # also: don't show user's messages in public timeline
+            return not is_public_timeline
         elif privacy == MSGPRV_PUBLIC:
             return True
         elif privacy == MSGPRV_UNLISTED:
-            # TODO user's posts may appear the same in public timeline,
             # even if unlisted
             return not is_public_timeline
         elif privacy == MSGPRV_FRIENDS:
@@ -172,7 +204,8 @@ class Notification(BaseModel):
 def create_tables():
     with database:
         database.create_tables([
-            User, Message, Relationship, Upload, Notification])
+            User, UserAdminship, UserProfile, Message, Relationship, 
+            Upload, Notification])
     if not os.path.isdir(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)
 
@@ -384,6 +417,11 @@ def register():
         username = request.form['username'].lower()
         if not is_username(username):
             flash('This username is invalid')
+            return render_template('join.html')
+        if username == getattr(get_current_user(), 'username', None) and not request.form.get('confirm_another'):
+            flash('You are already logged in. Please confirm you want to '
+                  'create another account by checking the option.')
+            return render_template('join.html')
         try:
             with database.atomic():
                 # Attempt to create the user. If the username is taken, due to the
@@ -394,6 +432,10 @@ def register():
                     email=request.form['email'],
                     birthday=birthday,
                     join_date=datetime.datetime.now())
+                UserProfile.create(
+                    user=user,
+                    full_name=request.form.get('full_name') or username
+                )
 
             # mark the user as being 'authenticated' by setting the session vars
             login_user(user)
@@ -561,6 +603,15 @@ def edit(id):
 #@app.route('/delete/<int:id>', methods=['GET', 'POST'])
 #def confirm_delete(id):
 #    return render_template('confirm_delete.html')
+
+@app.route('/edit_profile/', methods=['GET', 'POST'])
+def edit_profile():
+    if request.method == 'POST':
+        user = get_current_user()
+        username = request.form['username']
+        if username != user.username:
+            User.update(username=username).where(User.id == user.id).execute()
+    return render_template('edit_profile.html')
 
 @app.route('/notifications/')
 @login_required
