@@ -8,6 +8,7 @@
 * Added reference to terms of service and privacy policy on signup page.
 * When visiting signup page as logged in, user should confirm he wants to create another account in order to do it.
 * Moved user stats inside profile info.
+* Adding Privacy Policy.
 
 ## 0.5.0
 

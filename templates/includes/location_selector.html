@@ -1,0 +1,6 @@
+<select name="location">
+  <option value="0">Not Applicable</option>
+  {% for k, v in locations.items() %}
+  <option value="{{ k }}">{{ v }}</option>
+  {% endfor %}
+</select>

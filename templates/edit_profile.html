@@ -12,6 +12,8 @@
     <dd><input type="text" name="full_name" value="{{ profile.full_name }}"></dd>
     <dt>Biography:</dt>
     <dd><textarea class="biography_text" name="biography">{{ profile.biography }}</textarea></dd>
+    <dt>Location:</dt>
+    <dd>{% include "includes/location_selector.html" %}</dd>
     <dt>Website:</dt>
     <dd><input type="text" name="website" value="{{ profile.website }}"></dd>
     <dd><input type="submit" value="Save"></dd>

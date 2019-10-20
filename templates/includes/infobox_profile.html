@@ -3,12 +3,14 @@
   <h3>{{ profile.full_name }}</h3>
   <p>{{ profile.biography|enrich }}</p>
   {% if profile.location %}
-    <p><span class="weak">Location:</span> {{ profile.location }}</p>
+    <p><span class="weak">Location:</span> {{ profile.location|locationdata }}</p>
   {% endif %}
   {% if profile.year %}
     <p><span class="weak">Year:</span> {{ profile.year }}</p>
   {% endif %}
   {% if profile.website %}
+    {% set website = profile.website %}
+    {% set website = website if website.startswith(('http://', 'https://')) else 'http://' + website %}
     <p><span class="weak">Website:</span> {{ profile.website|urlize }}</p>
   {% endif %}
   {% if profile.instagram %}

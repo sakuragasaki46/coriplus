@@ -236,6 +236,11 @@ def validate_birthday(date):
         return True
     return False
 
+def validate_website(website):
+    return re.match(r'(?:https?://)?(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*'
+        r'|\[[A-Fa-f0-9:]+\])(?::\d+)?(?:/[^\s]*)?(?:\?[^\s]*)?(?:#[^\s]*)?$',
+        website)
+
 def human_short_date(timestamp):
     return ''
 
@@ -306,6 +311,25 @@ class Visibility(object):
                     yield i
                 counter += 1
 
+def get_locations():
+    data = {}
+    with open('locations.txt') as f:
+        for line in f:
+            line = line.rstrip()
+            if line.startswith('#'):
+                continue
+            try:
+                key, value = line.split(None, 1)
+            except ValueError:
+                continue
+            data[key] = value
+    return data
+
+try:
+    locations = get_locations()
+except OSError:
+    locations = {}
+
 # get the user from the session
 # changed in 0.5 to comply with flask_login
 def get_current_user():
@@ -369,7 +393,7 @@ def after_request(response):
 
 @app.context_processor
 def _inject_variables():
-    return {'site_name': app.config['SITE_NAME']}
+    return {'site_name': app.config['SITE_NAME'], 'locations': locations}
 
 @login_manager.user_loader
 def _inject_user(userid):
@@ -614,10 +638,18 @@ def edit_profile():
             username = user.username
         if username != user.username:
             User.update(username=username).where(User.id == user.id).execute()
+        website = request.form['website'].strip().replace(' ', '%20')
+        if website and not validate_website(website):
+            flash('You should enter a valid URL.')
+            return render_template('edit_profile.html')
+        location = int(request.form.get('location'))
+        if location == 0:
+            location = None
         UserProfile.update(
             full_name=request.form['full_name'] or username,
             biography=request.form['biography'],
-            website=request.form['website']
+            website=website,
+            location=location
         ).where(UserProfile.user == user).execute()
         return redirect(url_for('user_detail', username=username))
     return render_template('edit_profile.html')
@@ -677,6 +709,14 @@ def username_availability(username):
         is_available = False
     return jsonify({'is_valid':is_valid, 'is_available':is_available, 'status':'ok'})
 
+@app.route('/ajax/location_search/<name>')
+def location_search(name):
+    results = []
+    for key, value in locations.items():
+        if value.startswith(name):
+            results.append({'value': key, 'display': value})
+    return jsonify({'results': results})
+
 _enrich_symbols = [
     (r'\n', 'NEWLINE'),
     (r'https?://(?:[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*|\[[A-Fa-f0-9:]+\])'
@@ -720,6 +760,10 @@ def enrich(s):
 def is_following(from_user, to_user):
     return from_user.is_following(to_user)
 
+@app.template_filter('locationdata')
+def locationdata(key):
+    if key > 0:
+        return locations[str(key)]
 
 # allow running from the command line
 if __name__ == '__main__':
