@@ -11,6 +11,7 @@ Based on Tweepee example of [peewee](https://github.com/coleifer/peewee/).
 * Create text statuses, optionally with image
 * Follow users
 * Timeline feed
+* Add info to your profile
 * In-site notifications
 * SQLite-based app
 
