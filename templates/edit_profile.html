@@ -7,15 +7,26 @@
   <dl>
     <dt>Username:</dt>
     <dd><input type="text" class="username-input" name="username" required value="{{ current_user.username }}" autocomplete="off"></dd>
-    {% set profile = current_user.profile %}
+    {% if not profile %}
+      {% set profile = current_user.profile %}
+    {% endif %}
     <dt>Full name:</dt>
     <dd><input type="text" name="full_name" value="{{ profile.full_name }}"></dd>
     <dt>Biography:</dt>
     <dd><textarea class="biography_text" name="biography">{{ profile.biography }}</textarea></dd>
     <dt>Location:</dt>
     <dd>{% include "includes/location_selector.html" %}</dd>
+    <dt>Generation:</dt>
+    <dd>
+      <input type="checkbox" class="before-toggle" name="has_year" value="1" {% if profile.year %}checked{% endif %}>
+      <input type="number" name="year" value="{{ profile.year or 2000 }}">
+    </dd>
     <dt>Website:</dt>
-    <dd><input type="text" name="website" value="{{ profile.website }}"></dd>
+    <dd><input type="text" name="website" value="{{ profile.website or '' }}"></dd>
+    <dt>Instagram:</dt>
+    <dd><input type="text" name="instagram" value="{{ profile.instagram or '' }}"></dd>
+    <dt>Facebook:</dt>
+    <dd><input type="text" name="facebook" value="{{ profile.facebook or '' }}"></dd>
     <dd><input type="submit" value="Save"></dd>
   </dl>
 </form>

@@ -18,6 +18,8 @@ if sys.version_info[0] < 3:
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument('--norun', action='store_true', 
     help='Don\'t run the app. Useful for debugging.')
+arg_parser.add_argument('--debug', action='store_true', 
+    help='Run the app in debug mode.')
 arg_parser.add_argument('-p', '--port', type=int, default=5000,
     help='The port where to run the app. Defaults to 5000')
 
@@ -628,6 +630,20 @@ def edit(id):
 #def confirm_delete(id):
 #    return render_template('confirm_delete.html')
 
+# Workaround for problems related to invalid data.
+# Without that, changes will be lost across requests.
+def profile_checkpoint():
+    return UserProfile(
+        user=get_current_user(),
+        full_name=request.form['full_name'],
+        biography=request.form['biography'],
+        location=int(request.form['location']),
+        year=int(request.form['year'] if request.form.get('has_year') else '0'),
+        website=request.form['website'] or None,
+        instagram=request.form['instagram'] or None,
+        facebook=request.form['facebook'] or None
+    )
+
 @app.route('/edit_profile/', methods=['GET', 'POST'])
 def edit_profile():
     if request.method == 'POST':
@@ -637,19 +653,26 @@ def edit_profile():
             # prevent username to be set to empty
             username = user.username
         if username != user.username:
-            User.update(username=username).where(User.id == user.id).execute()
+            try:
+                User.update(username=username).where(User.id == user.id).execute()
+            except IntegrityError:
+                flash('That username is already taken')
+                return render_template('edit_profile.html', profile=profile_checkpoint())
         website = request.form['website'].strip().replace(' ', '%20')
         if website and not validate_website(website):
             flash('You should enter a valid URL.')
-            return render_template('edit_profile.html')
+            return render_template('edit_profile.html', profile=profile_checkpoint())
         location = int(request.form.get('location'))
         if location == 0:
             location = None
         UserProfile.update(
             full_name=request.form['full_name'] or username,
             biography=request.form['biography'],
+            year=request.form['year'] if request.form.get('has_year') else None,
+            location=location,
             website=website,
-            location=location
+            instagram=request.form['instagram'],
+            facebook=request.form['facebook']
         ).where(UserProfile.user == user).execute()
         return redirect(url_for('user_detail', username=username))
     return render_template('edit_profile.html')
@@ -713,7 +736,7 @@ def username_availability(username):
 def location_search(name):
     results = []
     for key, value in locations.items():
-        if value.startswith(name):
+        if value.lower().startswith(name.lower()):
             results.append({'value': key, 'display': value})
     return jsonify({'results': results})
 
@@ -770,4 +793,4 @@ if __name__ == '__main__':
     args = arg_parser.parse_args()
     create_tables()
     if not args.norun:
-        app.run(port=args.port)
+        app.run(port=args.port, debug=args.debug)

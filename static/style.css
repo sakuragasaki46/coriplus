@@ -19,6 +19,7 @@ body{margin:0}
 .message-options{display:none}
 .create_text{width:100%;height:8em}
 .biography_text{height:4em}
+.before-toggle:not(:checked) + input{display:none}
 .follow_button,input[type="submit"]{background-color:#ff3018;color:white;border-radius:3px;border:1px solid #ff3018}
 .follow_button.following{background-color:transparent;color:#ff3018;border-color:#ff3018}
 .copyright{font-size:smaller;text-align:center;color:#808080}
