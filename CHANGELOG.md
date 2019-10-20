@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.6-dev
+## 0.6.0
 
 * Added user adminship. Admins are users with very high privileges. Adminship can be assigned only at script level (not from the web).
 * Now one's messages won't show up in public timeline.
