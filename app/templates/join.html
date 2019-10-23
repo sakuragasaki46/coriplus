@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
   <h2>Join {{ site_name }}</h2>
-  <form action="{{ url_for('register') }}" method="POST">
+  <form action="{{ url_for('website.register') }}" method="POST">
     <dl>
       <dt>Username:</dt>
       <dd><input type="text" class="username-input" name="username" autocomplete="off"></dd>

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7-dev
+
+* Biggest change: unpacking modules. The single `app.py` file has become an `app` package, with submodules `models.py`, `utils.py`, `filters.py`, `website.py` and `ajax.py`.
+* Now `/about/` shows Python and Flask versions.
+* Now the error 404 handler returns HTTP 404.
+* Added user followers and following lists, accessible via `/+<username>/followers` and `/+<username>/following` and from the profile info box, linked to the followers/following number.
+* Schema changes: added column `telegram` to `UserProfile` table. To update schema, execute the script `migrate_0_6_to_0_7.py`
+
 ## 0.6.0
 
 * Added user adminship. Admins are users with very high privileges. Adminship can be assigned only at script level (not from the web).

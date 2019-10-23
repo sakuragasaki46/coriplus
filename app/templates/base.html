@@ -9,21 +9,21 @@
   </head>
   <body>
     <div class="header">
-      <h1><a href="{{ url_for('homepage') }}">{{ site_name }}</a></h1>
+      <h1><a href="{{ url_for('website.homepage') }}">{{ site_name }}</a></h1>
       <div class="metanav">
       {% if current_user.is_anonymous %}
-        <a href="{{ url_for('login') }}">log in</a>
-        <a href="{{ url_for('register') }}">register</a>
+        <a href="{{ url_for('website.login', next=request.full_path) }}">log in</a>
+        <a href="{{ url_for('website.register', next=request.full_path) }}">register</a>
       {% else %}
-        <a href="{{ url_for('user_detail', username=current_user.username) }}">{{ current_user.username }}</a>
+        <a href="{{ url_for('website.user_detail', username=current_user.username) }}">{{ current_user.username }}</a>
         {% set notification_count = current_user.unseen_notification_count() %}
         {% if notification_count > 0 %}
-        <a href="{{ url_for('notifications') }}">(<strong>{{ notification_count }}</strong>)</a>
+        <a href="{{ url_for('website.notifications') }}">(<strong>{{ notification_count }}</strong>)</a>
         {% endif %}
         - 
-        <a href="{{ url_for('public_timeline') }}">explore</a>
-        <a href="{{ url_for('create') }}">create</a>
-        <a href="{{ url_for('logout') }}">log out</a>
+        <a href="{{ url_for('website.public_timeline') }}">explore</a>
+        <a href="{{ url_for('website.create') }}">create</a>
+        <a href="{{ url_for('website.logout') }}">log out</a>
       {% endif %}
       </div>
     </div>

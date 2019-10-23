@@ -19,12 +19,15 @@
   {% if profile.facebook %}
     <p><span class="weak">Facebook:</span> <a href="https://facebook.com/{{ profile.facebook }}">{{ profile.facebook }}</a></p>
   {% endif %}
+  {% if profile.telegram %}
+    <p><span class="weak">Telegram:</span> <a href="https://t.me/{{ profile.facebook }}">{{ profile.telegram }}</a></p>
+  {% endif %}
   <p>
     <strong>{{ user.messages|count }}</strong> messages
     -
-    <strong>{{ user.followers()|count }}</strong> followers
+    <a href="{{ url_for('website.user_followers', username=user.username) }}"><strong>{{ user.followers()|count }}</strong></a> followers
     -
-    <strong>{{ user.following()|count }}</strong> following
+    <a href="{{ url_for('website.user_following', username=user.username) }}"><strong>{{ user.following()|count }}</strong></a> following
   </p>
   {% if user == current_user %}
     <p><a href="/edit_profile/">Edit profile</a></p>

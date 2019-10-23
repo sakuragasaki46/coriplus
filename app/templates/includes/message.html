@@ -1,11 +1,11 @@
 <p class="message-content">{{ message.text|enrich }}</p>
 {% if message.uploads %}
 <div class="message-visual">
-  <img src="/uploads/{{message.uploads[0].filename()}}">
+  <img src="/uploads/{{ message.uploads[0].filename() }}">
 </div>
 {% endif %}
 <p class="message-footer">
-  <a href="{{ url_for('user_detail', username=message.user.username) }}">{{ message.user.username }}</a> 
+  <a href="{{ url_for('website.user_detail', username=message.user.username) }}">{{ message.user.username }}</a> 
   - 
   {% set message_privacy = message.privacy %}
   {% if message.privacy in (0, 1) %} Public
