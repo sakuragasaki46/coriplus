@@ -20,7 +20,7 @@
 <ul class="message-options">
   {% if message.user == current_user %}
   <li><a href="/edit/{{ message.id }}">Edit or change privacy</a></li>
-  <!--li><a href="/confirm_delete/{{ message.id }}">Delete</a></li-->
+  <li><a href="/delete/{{ message.id }}">Delete permanently</a></li>
   {% else %}
   <!--li><a href="/report/{{ message.id }}">Report</a></li-->
   {% endif %}

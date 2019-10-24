@@ -2,10 +2,9 @@
 A list of utilities used across modules.
 '''
 
-import datetime, re, base64, hashlib, string
+import datetime, re, base64, hashlib, string, sys, json
 from .models import User, Notification
 from flask import abort, render_template, request, session
-import sys, json
 
 _forbidden_extensions = 'com net org txt'.split()
 _username_characters = frozenset(string.ascii_letters + string.digits + '_')
@@ -43,7 +42,7 @@ def int_to_b64(n):
     return base64.b64encode(b).lstrip(b'A').decode()
 
 def pwdhash(s):
-    return hashlib.md5((request.form['password']).encode('utf-8')).hexdigest()
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
 
 def get_object_or_404(model, *expressions):
     try:
@@ -160,3 +159,32 @@ def tokenize(characters, table):
                 break
         pos = mo.end(0)
     return tokens
+
+def get_secret_key():
+    from . import app
+    secret_key = app.config['SECRET_KEY']
+    if isinstance(secret_key, str):
+        secret_key = secret_key.encode('utf-8')
+    return secret_key
+
+def generate_access_token(user):
+    '''
+    Generate access token for public API.
+    '''
+    h = hashlib.sha256(get_secret_key())
+    h.update(b':')
+    h.update(str(user.id).encode('utf-8'))
+    h.update(b':')
+    h.update(str(user.password).encode('utf-8'))
+    return str(user.id) + ':' + h.hexdigest()[:32]
+
+def check_access_token(user, token):
+    uid, hh = token.split(':')
+    if uid != user.get_id():
+        return False
+    h = hashlib.sha256(get_secret_key())
+    h.update(b':')
+    h.update(str(user.id).encode('utf-8'))
+    h.update(b':')
+    h.update(str(user.password).encode('utf-8'))
+    return h.hexdigest()[:32] == hh

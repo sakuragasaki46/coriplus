@@ -6,6 +6,10 @@
 * Now `/about/` shows Python and Flask versions.
 * Now the error 404 handler returns HTTP 404.
 * Added user followers and following lists, accessible via `/+<username>/followers` and `/+<username>/following` and from the profile info box, linked to the followers/following number.
+* Added the page for permanent deletion of messages. Well, you cannot delete them yet. It's missing a function that checks the CSRF-Token.
+* Renamed template `private_messages.html` to `feed.html`.
+* Added the capability to change password.
+* Corrected a bug into `pwdhash`: it accepted an argument, but pulled data from the form instead of processing it. Now it uses the argument.
 * Schema changes: added column `telegram` to `UserProfile` table. To update schema, execute the script `migrate_0_6_to_0_7.py`
 
 ## 0.6.0

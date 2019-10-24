@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block body %}
+<h2>Confirm Deletion</h2>
+
+<p>Are you sure you want to permanently delete this post? 
+   Neither you nor others will be able to see it;
+   you cannot recover a post after it's deleted.</p>
+
+<p>If you only want to hide it from the public, 
+   you can <a href="/edit/{{ message.id }}">set its privacy</a> to "Only me".</p>
+
+<p>Here's the content of the message for reference:</p>
+
+<ul>
+  <li>{% include "includes/message.html" %}</li>
+</ul>
+
+<form method="POST">
+  <input type="submit" value="Delete">
+</form>
+{% endblock %}

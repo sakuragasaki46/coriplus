@@ -29,8 +29,7 @@ def private_timeline():
                 .where((Message.user << user.following())
                        | (Message.user == user))
                 .order_by(Message.pub_date.desc()))
-    # TODO change to "feed.html"
-    return object_list('private_messages.html', messages, 'message_list')
+    return object_list('feed.html', messages, 'message_list')
 
 @bp.route('/explore/')
 def public_timeline():
@@ -246,9 +245,15 @@ def edit(id):
         return redirect(url_for('website.user_detail', username=user.username))
     return render_template('edit.html', message=message)
 
-#@bp.route('/delete/<int:id>', methods=['GET', 'POST'])
-#def confirm_delete(id):
-#    return render_template('confirm_delete.html')
+@bp.route('/delete/<int:id>', methods=['GET', 'POST'])
+def confirm_delete(id):
+    user = get_current_user()
+    message = get_object_or_404(Message, Message.id == id)
+    if message.user != user:
+        abort(404)
+    if request.method == 'POST':
+        abort(501, 'CSRF-Token missing.')
+    return render_template('confirm_delete.html', message=message)
 
 # Workaround for problems related to invalid data.
 # Without that, changes will be lost across requests.
@@ -261,7 +266,8 @@ def profile_checkpoint():
         year=int(request.form['year'] if request.form.get('has_year') else '0'),
         website=request.form['website'] or None,
         instagram=request.form['instagram'] or None,
-        facebook=request.form['facebook'] or None
+        facebook=request.form['facebook'] or None,
+        telegram=request.form['telegram'] or None
     )
 
 @bp.route('/edit_profile/', methods=['GET', 'POST'])
@@ -298,6 +304,30 @@ def edit_profile():
         ).where(UserProfile.user == user).execute()
         return redirect(url_for('website.user_detail', username=username))
     return render_template('edit_profile.html')
+
+@bp.route('/change_password/', methods=['GET', 'POST'])
+def change_password():
+    user = get_current_user()
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+        errors = False
+        if not new_password:
+            flash('Password cannot be empty')
+            errors = True
+        if new_password != confirm_password:
+            flash('Password mismatch')
+            errors = True
+        if pwdhash(old_password) != user.password:
+            flash('The old password is incorrect')
+            errors = True 
+        if not errors:
+            user.update(
+                password=pwdhash(new_password)
+            )
+            return redirect(url_for('website.edit_profile'))
+    return render_template('change_password.html')
 
 @bp.route('/notifications/')
 @login_required
