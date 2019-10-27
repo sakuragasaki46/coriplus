@@ -16,7 +16,6 @@ from flask import (
     Flask, abort, flash, g, jsonify, redirect, render_template, request,
     send_from_directory, session, url_for, __version__ as flask_version)
 import hashlib
-from peewee import *
 import datetime, time, re, os, sys, string, json, html
 from functools import wraps
 from flask_login import LoginManager
@@ -76,12 +75,46 @@ def robots_txt():
 def uploads(id, type='jpg'):
     return send_from_directory(UPLOAD_DIRECTORY, id + '.' + type)
 
+@app.route('/get_access_token', methods=['POST'])
+def send_access_token():
+    try:
+        try:
+            user = User.get(
+                (User.username == request.form['username']) & 
+                (User.password == pwdhash(request.form['password'])))
+        except User.DoesNotExist:
+            return jsonify({
+                'message': 'Invalid username or password',
+                'login_correct': False, 
+                'status': 'ok'
+            })
+        if user.is_disabled == 1:
+            user.is_disabled = 0
+        elif user.is_disabled == 2:
+            return jsonify({
+                'message': 'Your account has been disabled by violating our Terms.',
+                'login_correct': False, 
+                'status': 'ok'
+            })
+        return jsonify({
+            'token': generate_access_token(user),
+            'login_correct': True,
+            'status': 'ok'
+        })
+    except Exception:
+        sys.excepthook(*sys.exc_info())
+        return jsonify({
+            'message': 'An unknown error has occurred.',
+            'status': 'fail'
+        })
+
 from .website import bp
 app.register_blueprint(bp)
 
 from .ajax import bp
 app.register_blueprint(bp)
 
-
+from .api import bp
+app.register_blueprint(bp)
 
 

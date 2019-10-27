@@ -2,7 +2,7 @@
 
 A simple social network, inspired by the now dead Google-Plus.
 
-To run the app, run the file "run_example.py"
+To run the app, do "flask run" in the package's parent directory.
 
 Based on Tweepee example of [peewee](https://github.com/coleifer/peewee/).
 
@@ -13,6 +13,7 @@ Based on Tweepee example of [peewee](https://github.com/coleifer/peewee/).
 * Timeline feed
 * Add info to your profile
 * In-site notifications
+* Public API
 * SQLite-based app
 
 ## Requirements

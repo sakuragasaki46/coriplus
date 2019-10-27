@@ -178,13 +178,16 @@ def generate_access_token(user):
     h.update(str(user.password).encode('utf-8'))
     return str(user.id) + ':' + h.hexdigest()[:32]
 
-def check_access_token(user, token):
+def check_access_token(token):
     uid, hh = token.split(':')
-    if uid != user.get_id():
-        return False
+    try:
+        user = User[uid]
+    except User.DoesNotExist:
+        return
     h = hashlib.sha256(get_secret_key())
     h.update(b':')
     h.update(str(user.id).encode('utf-8'))
     h.update(b':')
     h.update(str(user.password).encode('utf-8'))
-    return h.hexdigest()[:32] == hh
+    if h.hexdigest()[:32] == hh:
+        return user
