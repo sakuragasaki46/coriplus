@@ -16,7 +16,7 @@ import os
 # here should go `from .utils import get_current_user`, but it will cause
 # import errors. It's instead imported at function level.
 
-database = SqliteDatabase(os.path.join(os.getcwd(), 'coriplus.sqlite'))
+database = SqliteDatabase(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'coriplus.sqlite'))
 
 class BaseModel(Model):
     class Meta:

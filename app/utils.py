@@ -101,9 +101,14 @@ except OSError:
 # get the user from the session
 # changed in 0.5 to comply with flask_login
 def get_current_user():
-    user_id = session.get('user_id')
-    if user_id:
-        return User[user_id]
+    # new in 0.7; need a different method to get current user id
+    if request.path.startswith('/api/'):
+        # assume token validation is already done
+        return User[request.args['access_token'].split(':')[0]]
+    else:
+        user_id = session.get('user_id')
+        if user_id:
+           return User[user_id]
 
 def push_notification(type, target, **kwargs):
     try:
