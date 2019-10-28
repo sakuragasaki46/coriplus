@@ -79,9 +79,10 @@ def uploads(id, type='jpg'):
 def send_access_token():
     try:
         try:
+            data = request.json
             user = User.get(
-                (User.username == request.form['username']) & 
-                (User.password == pwdhash(request.form['password'])))
+                (User.username == data['username']) & 
+                (User.password == pwdhash(data['password'])))
         except User.DoesNotExist:
             return jsonify({
                 'message': 'Invalid username or password',
