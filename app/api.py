@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-import sys, datetime
+import sys, datetime, re
 from functools import wraps
 from .models import User, Message
 from .utils import check_access_token, Visibility
@@ -94,3 +94,26 @@ def create(self):
                 push_notification('mention', mention_user, user=user.id)
         except User.DoesNotExist:
             pass
+
+@bp.route('/profile_info/<userid>', methods=['GET'])
+@validate_access
+def profile_info(self, userid):
+    if userid == 'self':
+        user = self
+    elif userid.isdigit():
+        user = User[id]
+    else:
+        raise ValueError('userid should be an integer or "self"')
+    profile = user.profile
+    return {
+        "user": {
+            "id": user.id,
+            "username": user.username,
+            "full_name": profile.full_name,
+            "biography": profile.biography,
+            "website": profile.website,
+            "generation": profile.year,
+            "instagram": profile.instagram,
+            "facebook": profile.facebook,
+        }
+    }
