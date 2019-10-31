@@ -78,8 +78,8 @@ def uploads(id, type='jpg'):
 @app.route('/get_access_token', methods=['POST'])
 def send_access_token():
     try:
+        data = request.get_json(True)
         try:
-            data = request.json
             user = User.get(
                 (User.username == data['username']) & 
                 (User.password == pwdhash(data['password'])))

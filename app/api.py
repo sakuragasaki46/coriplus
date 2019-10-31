@@ -65,3 +65,32 @@ def feed(self):
     for message in query:
         timeline_media.append(get_message_info(message))
     return {'timeline_media': timeline_media}
+
+@bp.route('/create', methods=['POST'])
+@validate_access
+def create(self):
+    data = request.get_json(True)
+    text = data['text']
+    privacy = int(data.get('privacy', 0))
+    message = Message.create(
+        user=self,
+        text=text,
+        pub_date=datetime.datetime.now(),
+        privacy=privacy)
+    # Currently, API does not support files.
+    # create mentions
+    mention_usernames = set()
+    for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):
+        mention_usernames.add(mo.group(1))
+    # to avoid self mention
+    mention_usernames.difference_update({self.username})
+    for u in mention_usernames:
+        try:
+            mention_user = User.get(User.username == u)
+            if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
+                    (privacy == MSGPRV_FRIENDS and
+                    mention_user.is_following(self) and 
+                    self.is_following(mention_user)):
+                push_notification('mention', mention_user, user=user.id)
+        except User.DoesNotExist:
+            pass
