@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 import sys, datetime, re
 from functools import wraps
-from .models import User, Message
+from .models import User, Message, Relationship
 from .utils import check_access_token, Visibility
 
 bp = Blueprint('api', __name__, url_prefix='/api/V1')
@@ -37,7 +37,7 @@ def validate_access(func):
             result = func(user, *args, **kwargs)
             assert isinstance(result, dict)
         except Exception:
-            sys.excepthook(*sys.exc_info())
+            import traceback; traceback.print_exc()
             return jsonify({
                 'message': str(sys.exc_info()[1]),
                 'status': 'fail'
@@ -95,13 +95,24 @@ def create(self):
         except User.DoesNotExist:
             pass
 
+def get_relationship_info(self, other):
+    if self == other:
+        return
+    return {
+        "following": self.is_following(other),
+        "followed_by": other.is_following(self)
+    }
+
 @bp.route('/profile_info/<userid>', methods=['GET'])
 @validate_access
 def profile_info(self, userid):
     if userid == 'self':
         user = self
     elif userid.isdigit():
-        user = User[id]
+        try:
+            user = User[userid]
+        except User.DoesNotExist:
+            return {'user': None}
     else:
         raise ValueError('userid should be an integer or "self"')
     profile = user.profile
@@ -115,5 +126,50 @@ def profile_info(self, userid):
             "generation": profile.year,
             "instagram": profile.instagram,
             "facebook": profile.facebook,
+            "relationships": get_relationship_info(self, user)
         }
     }
+
+@bp.route('/profile_info/feed/<userid>', methods=['GET'])
+@validate_access
+def profile_feed(self, userid):
+    if userid == 'self':
+        user = self
+    elif userid.isdigit():
+        user = User[userid]
+    else:
+        raise ValueError('userid should be an integer or "self"')
+    timeline_media = []
+    date = request.args.get('offset')
+    if date is None:
+        date = datetime.datetime.now()
+    else:
+        date = datetime.datetime.fromtimestamp(date)
+    query = Visibility(Message
+        .select()
+        .where((Message.user == user)
+            & (Message.pub_date < date))
+        .order_by(Message.pub_date.desc())
+        .limit(20))
+    for message in query:
+        timeline_media.append(get_message_info(message))
+    return {'timeline_media': timeline_media}
+
+@bp.route('/profile_search', methods=['POST'])
+@validate_access
+def profile_search(self):
+    data = request.get_json(True)
+    query = User.select().where(User.username ** ('%' + data['q'] + '%')).limit(20)
+    results = []
+    for result in query:
+        profile = result.profile
+        result.append({
+            "id": result.id,
+            "username": result.username,
+            "full_name": result.profile.full_name,
+            "followers_count": len(result.followers())
+        })
+    return {
+        "users": results
+    }
+        
