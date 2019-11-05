@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request
 import sys, datetime, re
 from functools import wraps
-from .models import User, Message, Relationship
+from .models import User, Message, Relationship, \
+    MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME
 from .utils import check_access_token, Visibility
 
 bp = Blueprint('api', __name__, url_prefix='/api/V1')
@@ -108,6 +109,8 @@ def get_relationship_info(self, other):
 def profile_info(self, userid):
     if userid == 'self':
         user = self
+    elif userid.startswith('+'):
+        user = User.get(User.username == userid[1:])
     elif userid.isdigit():
         try:
             user = User[userid]
@@ -135,6 +138,8 @@ def profile_info(self, userid):
 def profile_feed(self, userid):
     if userid == 'self':
         user = self
+    elif userid.startswith('+'):
+        user = User.get(User.username == userid[1:])
     elif userid.isdigit():
         user = User[userid]
     else:
@@ -163,10 +168,10 @@ def profile_search(self):
     results = []
     for result in query:
         profile = result.profile
-        result.append({
+        results.append({
             "id": result.id,
             "username": result.username,
-            "full_name": result.profile.full_name,
+            "full_name": profile.full_name,
             "followers_count": len(result.followers())
         })
     return {

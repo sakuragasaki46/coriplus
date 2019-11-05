@@ -149,7 +149,7 @@ class Message(BaseModel):
             # even if unlisted
             return not is_public_timeline
         elif privacy == MSGPRV_FRIENDS:
-            if cur_user is None:
+            if cur_user.is_anonymous:
                 return False
             return user.is_following(cur_user) and cur_user.is_following(user)
         else:

@@ -20,7 +20,7 @@ import datetime, time, re, os, sys, string, json, html
 from functools import wraps
 from flask_login import LoginManager
 
-__version__ = '0.7-dev'
+__version__ = '0.7.0'
 
 # we want to support Python 3 only.
 # Python 2 has too many caveats.
