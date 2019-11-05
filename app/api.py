@@ -129,7 +129,10 @@ def profile_info(self, userid):
             "generation": profile.year,
             "instagram": profile.instagram,
             "facebook": profile.facebook,
-            "relationships": get_relationship_info(self, user)
+            "relationships": get_relationship_info(self, user),
+            "messages_count": len(user.messages),
+            "followers_count": len(user.followers()),
+            "following_count": len(user.following())
         }
     }
 

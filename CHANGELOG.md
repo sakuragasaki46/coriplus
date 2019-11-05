@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1-dev
+
+* Adding `messages_count`, `followers_count` and `following_count` to `profile_info` API endpoint (forgot to release).
+
 ## 0.7.0
 
 * Biggest change: unpacking modules. The single `app.py` file has become an `app` package, with submodules `models.py`, `utils.py`, `filters.py`, `website.py` and `ajax.py`. There is also a new module `api.py`.
