@@ -26,6 +26,8 @@ class BaseModel(Model):
 class User(BaseModel):
     # The unique username.
     username = CharField(unique=True)
+    # The user's full name (here for better search since 0.8)
+    full_name = TextField()
     # The password hash.
     password = CharField()
     # An email address.
@@ -107,7 +109,6 @@ class UserAdminship(BaseModel):
 # New in 0.6
 class UserProfile(BaseModel):
     user = ForeignKeyField(User, primary_key=True)
-    full_name = TextField()
     biography = TextField(default='')
     location = IntegerField(null=True)
     year = IntegerField(null=True)
@@ -115,6 +116,12 @@ class UserProfile(BaseModel):
     instagram = TextField(null=True)
     facebook = TextField(null=True)
     telegram = TextField(null=True)
+    @property
+    def full_name(self):
+        '''
+        Moved to User in 0.8 for search improvement reasons.
+        '''
+        return self.user.full_name
 
 # The message privacy values.
 MSGPRV_PUBLIC = 0 # everyone

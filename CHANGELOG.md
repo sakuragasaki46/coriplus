@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8-dev
+
+* Schema changes: moved `full_name` field from table `userprofile` to table `user` for search improvement reasons.
+* Adding `messages_count`, `followers_count` and `following_count` to `profile_info` API endpoint (what I've done to 0.7.1 too).
+
 ## 0.7.1-dev
 
 * Adding `messages_count`, `followers_count` and `following_count` to `profile_info` API endpoint (forgot to release).
