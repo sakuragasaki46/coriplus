@@ -1,13 +1,20 @@
 from flask import Blueprint, jsonify, request
 import sys, datetime, re
 from functools import wraps
-from .models import User, Message, Relationship, \
+from peewee import IntegrityError
+from .models import User, Message, Relationship, database, \
     MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME
-from .utils import check_access_token, Visibility
+from .utils import check_access_token, Visibility, push_notification, unpush_notification
 
 bp = Blueprint('api', __name__, url_prefix='/api/V1')
 
 def get_message_info(message):
+    try:
+        media = message.uploads[0].url()
+    except IndexError:
+        media = None
+    if media:
+        print(media)
     return {
         'id': message.id,
         'user': {
@@ -16,7 +23,8 @@ def get_message_info(message):
         },
         'text': message.text,
         'privacy': message.privacy,
-        'pub_date': message.pub_date.timestamp()
+        'pub_date': message.pub_date.timestamp(),
+        'media': media
     }
 
 def validate_access(func):
@@ -163,6 +171,34 @@ def profile_feed(self, userid):
         timeline_media.append(get_message_info(message))
     return {'timeline_media': timeline_media}
 
+@bp.route('/relationships/<int:userid>/follow', methods=['POST'])
+@validate_access
+def relationships_follow(self, userid):
+    user = User[userid]
+    try:
+        with database.atomic():
+            Relationship.create(
+                from_user=self,
+                to_user=user,
+                created_date=datetime.datetime.now())
+    except IntegrityError:
+        pass
+    push_notification('follow', user, user=self.id)
+    return get_relationship_info(self, user)
+
+@bp.route('/relationships/<int:userid>/unfollow', methods=['POST'])
+@validate_access
+def relationships_unfollow(self, userid):
+    user = User[userid]
+    (Relationship
+     .delete()
+     .where(
+         (Relationship.from_user == self) &
+         (Relationship.to_user == user))
+     .execute())
+    unpush_notification('follow', user, user=self.id)
+    return get_relationship_info(self, user)
+
 @bp.route('/profile_search', methods=['POST'])
 @validate_access
 def profile_search(self):
@@ -180,4 +216,54 @@ def profile_search(self):
     return {
         "users": results
     }
-        
+
+@bp.route('/username_availability/<username>')
+@validate_access
+def username_availability(self, username):
+    current = self.username
+    is_valid = is_username(username)
+    if is_valid:
+        try:
+            user = User.get(User.username == username)
+            is_available = current == user.username
+        except User.DoesNotExist:
+            is_available = True
+    else:
+        is_available = False
+    return {
+        'is_valid': is_valid,
+        'is_available': is_available
+    }
+
+@bp.route('/edit_profile', methods=['POST'])
+@validate_access
+def edit_profile(user):
+    data = request.get_json(True)
+    username = data['username']
+    if not username:
+        # prevent username to be set to empty
+        username = user.username
+    if username != user.username:
+        try:
+            User.update(username=username).where(User.id == user.id).execute()
+        except IntegrityError:
+            raise ValueError('that username is already taken')
+    full_name = data['full_name'] or username
+    if full_name != user.full_name:
+        User.update(full_name=full_name).where(User.id == user.id).execute()
+    website = data['website'].strip().replace(' ', '%20')
+    if website and not validate_website(website):
+        raise ValueError('You should enter a valid URL.')
+    #location = int(request.form.get('location'))
+    #if location == 0:
+    #    location = None
+    UserProfile.update(
+        biography=data['biography'],
+        #year=data['year'] if data.get('has_year') else None,
+        #location=location,
+        website=website,
+        instagram=data['instagram'],
+        facebook=data['facebook'],
+        telegram=data['telegram']
+    ).where(UserProfile.user == user).execute()
+    return {}

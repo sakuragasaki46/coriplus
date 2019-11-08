@@ -11,6 +11,7 @@ The tables are:
 * notification - a in-site notification to a user; new in 0.3
 '''
 
+from flask import request
 from peewee import *
 import os
 # here should go `from .utils import get_current_user`, but it will cause
@@ -188,6 +189,8 @@ class Upload(BaseModel):
     # helper to retrieve contents
     def filename(self):
         return str(self.id) + '.' + self.type
+    def url(self):
+        return request.host_url + 'uploads/' + self.filename()
 
 class Notification(BaseModel):
     type = TextField()

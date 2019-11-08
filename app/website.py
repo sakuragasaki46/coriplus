@@ -60,13 +60,13 @@ def register():
                 # unique constraint, the database will raise an IntegrityError.
                 user = User.create(
                     username=username,
+                    full_name=request.form.get('full_name') or username,
                     password=pwdhash(request.form['password']),
                     email=request.form['email'],
                     birthday=birthday,
                     join_date=datetime.datetime.now())
                 UserProfile.create(
-                    user=user,
-                    full_name=request.form.get('full_name') or username
+                    user=user
                 )
 
             # mark the user as being 'authenticated' by setting the session vars
@@ -260,7 +260,6 @@ def confirm_delete(id):
 def profile_checkpoint():
     return UserProfile(
         user=get_current_user(),
-        full_name=request.form['full_name'],
         biography=request.form['biography'],
         location=int(request.form['location']),
         year=int(request.form['year'] if request.form.get('has_year') else '0'),
@@ -285,6 +284,9 @@ def edit_profile():
             except IntegrityError:
                 flash('That username is already taken')
                 return render_template('edit_profile.html', profile=profile_checkpoint())
+        full_name = request.form['full_name'] or username
+        if full_name != user.full_name:
+            User.update(full_name=full_name).where(User.id == user.id).execute()
         website = request.form['website'].strip().replace(' ', '%20')
         if website and not validate_website(website):
             flash('You should enter a valid URL.')
@@ -293,7 +295,6 @@ def edit_profile():
         if location == 0:
             location = None
         UserProfile.update(
-            full_name=request.form['full_name'] or username,
             biography=request.form['biography'],
             year=request.form['year'] if request.form.get('has_year') else None,
             location=location,
