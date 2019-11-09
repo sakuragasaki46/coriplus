@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
-import sys, datetime, re
+import sys, os, datetime, re
 from functools import wraps
 from peewee import IntegrityError
-from .models import User, Message, Relationship, database, \
-    MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME
+from .models import User, Message, Upload, Relationship, database, \
+    MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME, UPLOAD_DIRECTORY
 from .utils import check_access_token, Visibility, push_notification, unpush_notification
 
 bp = Blueprint('api', __name__, url_prefix='/api/V1')
@@ -103,6 +103,44 @@ def create(self):
                 push_notification('mention', mention_user, user=user.id)
         except User.DoesNotExist:
             pass
+    return {}
+
+@bp.route('/create2', methods=['POST'])
+@validate_access
+def create2(self):
+    text = request.form['text']
+    privacy = int(request.form.get('privacy', 0))
+    message = Message.create(
+        user=self,
+        text=text,
+        pub_date=datetime.datetime.now(),
+        privacy=privacy)
+    file = request.files.get('file')
+    if file:
+        print('Uploading', file.filename)
+        ext = file.filename.split('.')[-1]
+        upload = Upload.create(
+            type=ext,
+            message=message
+        )
+        file.save(os.path.join(UPLOAD_DIRECTORY, str(upload.id) + '.' + ext))
+    # create mentions
+    mention_usernames = set()
+    for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):
+        mention_usernames.add(mo.group(1))
+    # to avoid self mention
+    mention_usernames.difference_update({self.username})
+    for u in mention_usernames:
+        try:
+            mention_user = User.get(User.username == u)
+            if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
+                    (privacy == MSGPRV_FRIENDS and
+                    mention_user.is_following(self) and 
+                    self.is_following(mention_user)):
+                push_notification('mention', mention_user, user=user.id)
+        except User.DoesNotExist:
+            pass
+    return {}
 
 def get_relationship_info(self, other):
     if self == other:
