@@ -1,0 +1,27 @@
+{% extends "admin_base.html" %}
+
+{% block body %}
+  <h2>Report detail #{{ report.id }}</h2>
+  <p>Type: {{ [None, 'user', 'message'][report.media_type] }}</p>
+  <p>Reason: <strong>{{ report_reasons[report.reason] }}</strong></p>
+  <p>Status: <strong>{{ ['Unreviewed', 'Accepted', 'Declined'][report.status] }}</strong></p>
+
+  <h3>Detail</h3>
+  {% if report.media is none %}
+    <p><em>The media is unavailable.</em></p>
+  {% elif report.media_type == 1 %}
+    <p><em>Showing first 20 messages of the reported user.</em></p>
+    <ul>
+      {% for message in report.media.messages %}
+        {% include "includes/reported_message.html" %}
+      {% endfor %}
+    </ul>
+  {% elif report.media_type == 2 %}
+    {% set message = report.media %}
+    {% include "includes/reported_message.html" %}
+  {% endif %}
+  <form method="POST">
+    <input type="submit" name="take_down" value="Take down">
+    <input type="submit" name="discard" value="Discard">
+  </form>
+{% endblock %}

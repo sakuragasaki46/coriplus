@@ -1,0 +1,15 @@
+<div>
+  <p><strong>Message #{{ message.id }}</strong> (<a href="{# url_for('admin.message_info', id=message.id) #}">detail</a>)</p>
+  <p>Author: <a href="{# url_for('admin.user_detail', id=message.user_id #}">{{ message.user.username }}</a></p>
+  <p>Text:</p>
+  <div style="border:1px solid gray;padding:12px">
+    {{ message.text|enrich }}
+    {% if message.uploads %}
+    <div>
+      <img src="/uploads/{{ message.uploads[0].filename() }}">
+    </div>
+    {% endif %}
+  </div>
+  <p>Privacy: {{ ['public', 'unlisted', 'friends', 'only me'][message.privacy] }}</p>
+  <p>Date: {{ message.pub_date.strftime('%B %-d, %Y %H:%M:%S') }}</p>
+</div>

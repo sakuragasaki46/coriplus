@@ -241,14 +241,15 @@ def relationships_unfollow(self, userid):
 @validate_access
 def profile_search(self):
     data = request.get_json(True)
-    query = User.select().where(User.username ** ('%' + data['q'] + '%')).limit(20)
+    query = User.select().where((User.username ** ('%' + data['q'] + '%')) |
+        (User.full_name ** ('%' + data['q'] + '%'))).limit(20)
     results = []
     for result in query:
         profile = result.profile
         results.append({
             "id": result.id,
             "username": result.username,
-            "full_name": profile.full_name,
+            "full_name": result.full_name,
             "followers_count": len(result.followers())
         })
     return {

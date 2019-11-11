@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ site_name }}</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <style>.done{opacity:.5}</style>
+  </head>
+  <body>
+    <div class="header">
+      <h1><a href="{{ url_for('admin.homepage') }}">{{ site_name }} Admin</a></h1>
+      <div class="metanav">
+        <!-- what does it go here? -->
+      </div>
+    </div>
+    <div class="content">
+      {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+      {% endfor %}
+      {% block body %}{% endblock %}
+    </div>
+    <div class="footer">
+      <p class="copyright">&copy; 2019 Sakuragasaki46. 
+        <a href="/about/">About</a> - <a href="/terms/">Terms</a> - 
+        <a href="/privacy/">Privacy</a></p>
+    </div>
+    <script src="/static/lib.js"></script>
+  </body>
+</html>

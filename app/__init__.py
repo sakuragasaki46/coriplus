@@ -7,6 +7,9 @@ This module also contains very basic web hooks, such as robots.txt.
 
 For the website hooks, see `app.website`.
 For the AJAX hook, see `app.ajax`.
+For public API, see `app.api`.
+For report pages, see `app.reports`.
+For site administration, see `app.admin`.
 For template filters, see `app.filters`.
 For the database models, see `app.models`.
 For other, see `app.utils`.
@@ -118,4 +121,8 @@ app.register_blueprint(bp)
 from .api import bp
 app.register_blueprint(bp)
 
+from .reports import bp
+app.register_blueprint(bp)
 
+from .admin import bp
+app.register_blueprint(bp)

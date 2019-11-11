@@ -6,6 +6,8 @@ To run the app, do "flask run" in the package's parent directory.
 
 Based on Tweepee example of [peewee](https://github.com/coleifer/peewee/).
 
+This is the server. For the client, see [coriplusapp](https://github.com/sakuragasaki46/coriplusapp/).
+
 ## Features
 
 * Create text statuses, optionally with image

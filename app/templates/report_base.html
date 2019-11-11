@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Report &ndash; Cori+</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body{margin:0;font-family:sans-serif}
+      .item{padding:12px;border-bottom:1px solid gray}
+      .item h2{font-size:1em;margin:6px 0}
+    </style>
+  </head>
+  <body>
+    <div class="content">
+      {% block body %}{% endblock %}
+    </div>
+    <form id="reportForm" method="POST">
+      <input id="reportFormValue" name="reason" type="hidden" value="">
+      <input type="submit" style="display:none">
+    </form>
+    <script>
+      function submitReport(value){
+        reportFormValue.value = value;
+        reportForm.submit();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,16 @@
+{% extends "admin_base.html" %}
+
+{% block body %}
+  <ul>
+  {% for report in report_list %}
+    <li {% if report.status > 0 %}class="done"{% endif %}>
+      <p><strong>#{{ report.id }}</strong> 
+        (<a href="{{ url_for('admin.reports_detail', id=report.id) }}">detail</a>)</p>
+      <p>Type: {{ [None, 'user', 'message'][report.media_type] }}</p>
+      <p>Reason: <strong>{{ report_reasons[report.reason] }}</strong></p>
+      <p>Status: <strong>{{ ['Unreviewed', 'Accepted', 'Declined'][report.status] }}</strong></p>
+    </li>
+  {% endfor %}
+  </ul>
+  {% include "includes/pagination.html" %}
+{% endblock %}

@@ -198,11 +198,61 @@ class Notification(BaseModel):
     detail = TextField()
     pub_date = DateTimeField()
     seen = IntegerField(default=0)
+    
+REPORT_MEDIA_USER = 1
+REPORT_MEDIA_MESSAGE = 2
+
+REPORT_REASON_SPAM = 1
+REPORT_REASON_IMPERSONATION = 2
+REPORT_REASON_PORN = 3
+REPORT_REASON_VIOLENCE = 4
+REPORT_REASON_HATE = 5
+REPORT_REASON_BULLYING = 6
+REPORT_REASON_SELFINJURY = 7
+REPORT_REASON_FIREARMS = 8
+REPORT_REASON_DRUGS = 9
+REPORT_REASON_UNDERAGE = 10
+
+report_reasons = [
+    (REPORT_REASON_SPAM, "It's spam"),
+    (REPORT_REASON_IMPERSONATION, "This profile is pretending to be someone else"),
+    (REPORT_REASON_PORN, "Nudity or pornography"),
+    (REPORT_REASON_VIOLENCE, "Violence or dangerous organization"),
+    (REPORT_REASON_HATE, "Hate speech or symbols"),
+    (REPORT_REASON_BULLYING, "Harassment or bullying"),
+    (REPORT_REASON_SELFINJURY, "Self injury"),
+    (REPORT_REASON_FIREARMS, "Sale or promotion of firearms"),
+    (REPORT_REASON_DRUGS, "Sale or promotion of drugs"),
+    (REPORT_REASON_UNDERAGE, "This user is less than 13 years old"),
+]
+
+REPORT_STATUS_DELIVERED = 0
+REPORT_STATUS_ACCEPTED = 1
+REPORT_STATUS_DECLINED = 2
+
+# New in 0.8.
+class Report(BaseModel):
+    media_type = IntegerField()
+    media_id = IntegerField()
+    sender = ForeignKeyField(User, null=True)
+    reason = IntegerField()
+    status = IntegerField(default=REPORT_STATUS_DELIVERED)
+    created_date = DateTimeField()
+    
+    @property
+    def media(self):
+        try:
+            if self.media_type == REPORT_MEDIA_USER:
+                return User[self.media_id]
+            elif self.media_type == REPORT_MEDIA_MESSAGE:
+                return Message[self.media_id]
+        except DoesNotExist:
+            return
 
 def create_tables():
     with database:
         database.create_tables([
             User, UserAdminship, UserProfile, Message, Relationship, 
-            Upload, Notification])
+            Upload, Notification, Report])
     if not os.path.isdir(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)

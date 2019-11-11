@@ -1,0 +1,11 @@
+{% extends "report_base.html" %}
+
+{% block body %}
+  {% for reason in report_reasons %}
+    <form method="POST">
+      <div class="item" onclick="submitReport({{ reason[0] }})">
+        <h2>{{ reason[1] }}</h2>
+      </div>
+    </form>
+  {% endfor %}
+{% endblock %}

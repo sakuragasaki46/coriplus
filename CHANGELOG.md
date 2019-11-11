@@ -2,12 +2,16 @@
 
 ## 0.8-dev
 
-* Schema changes: moved `full_name` field from table `userprofile` to table `user` for search improvement reasons.
+* Added the admin dashboard, accessible from `/admin/` via basic auth. Only users with admin right can access it. Added endpoints `admin.reports` and `admin.reports_detail`.
+* Safety is our top priority: added the ability to report someone other's post for everything violating the site's Terms of Service. The current reasons for reporting are: spam, impersonation, pornography, violence, harassment or bullying, hate speech or symbols, self injury, sale or promotion of firearms or drugs, and underage use.
+* Schema changes: moved `full_name` field from table `userprofile` to table `user` for search improvement reasons. Added `Report` model.
+* Now `profile_search` API endpoint searches by full name too.
 * Adding `messages_count`, `followers_count` and `following_count` to `profile_info` API endpoint (what I've done to 0.7.1 too).
 * Adding `create2` API endpoint that accepts media, due to an issue with the `create` endpoint that would make it incompatible.
 * Adding media URLs to messages in API.
 * Added `relationships_follow`, `relationships_unfollow`, `username_availability` and `edit_profile` endpoints to API.
 * Added `url` utility to model `Upload`.
+* Changed default `robots.txt`, adding report and admin-related lines.
 
 ## 0.7.1-dev
 
