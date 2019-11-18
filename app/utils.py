@@ -3,7 +3,8 @@ A list of utilities used across modules.
 '''
 
 import datetime, re, base64, hashlib, string, sys, json
-from .models import User, Notification
+from .models import User, Message, Notification, MSGPRV_PUBLIC, MSGPRV_UNLISTED, \
+    MSGPRV_FRIENDS, MSGPRV_ONLYME
 from flask import abort, render_template, request, session
 
 _forbidden_extensions = 'com net org txt'.split()
@@ -196,3 +197,21 @@ def check_access_token(token):
     h.update(str(user.password).encode('utf-8'))
     if h.hexdigest()[:32] == hh:
         return user
+
+def create_mentions(cur_user, text):
+    # create mentions
+    mention_usernames = set()
+    for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):
+        mention_usernames.add(mo.group(1))
+    # to avoid self mention
+    mention_usernames.difference_update({cur_user.username})
+    for u in mention_usernames:
+        try:
+            mention_user = User.get(User.username == u)
+            if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
+                    (privacy == MSGPRV_FRIENDS and
+                    mention_user.is_following(cur_user) and 
+                    cur_user.is_following(mention_user)):
+                push_notification('mention', mention_user, user=user.id)
+        except User.DoesNotExist:
+            pass

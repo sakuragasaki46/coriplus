@@ -4,7 +4,8 @@ from functools import wraps
 from peewee import IntegrityError
 from .models import User, Message, Upload, Relationship, database, \
     MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME, UPLOAD_DIRECTORY
-from .utils import check_access_token, Visibility, push_notification, unpush_notification
+from .utils import check_access_token, Visibility, push_notification, unpush_notification, \
+    create_mentions, is_username
 
 bp = Blueprint('api', __name__, url_prefix='/api/V1')
 
@@ -86,23 +87,8 @@ def create(self):
         text=text,
         pub_date=datetime.datetime.now(),
         privacy=privacy)
-    # Currently, API does not support files.
-    # create mentions
-    mention_usernames = set()
-    for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):
-        mention_usernames.add(mo.group(1))
-    # to avoid self mention
-    mention_usernames.difference_update({self.username})
-    for u in mention_usernames:
-        try:
-            mention_user = User.get(User.username == u)
-            if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
-                    (privacy == MSGPRV_FRIENDS and
-                    mention_user.is_following(self) and 
-                    self.is_following(mention_user)):
-                push_notification('mention', mention_user, user=user.id)
-        except User.DoesNotExist:
-            pass
+    # This API does not support files. Use create2 instead.
+    create_mentions(self, text)
     return {}
 
 @bp.route('/create2', methods=['POST'])
@@ -124,22 +110,7 @@ def create2(self):
             message=message
         )
         file.save(os.path.join(UPLOAD_DIRECTORY, str(upload.id) + '.' + ext))
-    # create mentions
-    mention_usernames = set()
-    for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):
-        mention_usernames.add(mo.group(1))
-    # to avoid self mention
-    mention_usernames.difference_update({self.username})
-    for u in mention_usernames:
-        try:
-            mention_user = User.get(User.username == u)
-            if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
-                    (privacy == MSGPRV_FRIENDS and
-                    mention_user.is_following(self) and 
-                    self.is_following(mention_user)):
-                push_notification('mention', mention_user, user=user.id)
-        except User.DoesNotExist:
-            pass
+    create_mentions(self, text)
     return {}
 
 def get_relationship_info(self, other):
@@ -305,4 +276,24 @@ def edit_profile(user):
         facebook=data['facebook'],
         telegram=data['telegram']
     ).where(UserProfile.user == user).execute()
+    return {}
+
+@bp.route('/request_edit/<int:id>')
+@validate_access
+def request_edit(self, id):
+    message = Message[id]
+    if message.user != self:
+        raise ValueError('Attempt to edit a message from another')
+    return {
+        'message_info': get_message_info(message)
+    }
+
+@bp.route('/save_edit/<int:id>', methods=['POST'])
+@validate_access
+def save_edit(self, id):
+    message = Message[id]
+    if message.user != self:
+        raise ValueError('Attempt to edit a message from another')
+    data = request.get_json(True)
+    Message.update(text=data['text'], privacy=data['privacy']).where(Message.id == id).execute()
     return {}

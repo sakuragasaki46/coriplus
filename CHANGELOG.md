@@ -9,7 +9,7 @@
 * Adding `messages_count`, `followers_count` and `following_count` to `profile_info` API endpoint (what I've done to 0.7.1 too).
 * Adding `create2` API endpoint that accepts media, due to an issue with the `create` endpoint that would make it incompatible.
 * Adding media URLs to messages in API.
-* Added `relationships_follow`, `relationships_unfollow`, `username_availability` and `edit_profile` endpoints to API.
+* Added `relationships_follow`, `relationships_unfollow`, `username_availability`, `edit_profile`, `request_edit` and `confirm_edit` endpoints to API.
 * Added `url` utility to model `Upload`.
 * Changed default `robots.txt`, adding report and admin-related lines.
 
