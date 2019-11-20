@@ -273,10 +273,10 @@ def edit_profile(user):
             location = None
         kwargs['location'] = location
     if 'year' in data:
-		if data.get('has_year'):
-		    kwargs['year'] = data['year']
-		else:
-		    kwargs['year'] = None
+        if data.get('has_year'):
+            kwargs['year'] = data['year']
+        else:
+            kwargs['year'] = None
     if 'instagram' in data: kwargs['instagram'] = data['instagram']
     if 'facebook' in data: kwargs['facebook'] = data['facebook']
     if 'telegram' in data: kwargs['telegram'] = data['telegram']
