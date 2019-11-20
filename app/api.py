@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 import sys, os, datetime, re
 from functools import wraps
 from peewee import IntegrityError
-from .models import User, Message, Upload, Relationship, database, \
+from .models import User, UserProfile, Message, Upload, Relationship, database, \
     MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME, UPLOAD_DIRECTORY
 from .utils import check_access_token, Visibility, push_notification, unpush_notification, \
     create_mentions, is_username
@@ -261,20 +261,28 @@ def edit_profile(user):
     full_name = data['full_name'] or username
     if full_name != user.full_name:
         User.update(full_name=full_name).where(User.id == user.id).execute()
-    #website = data['website'].strip().replace(' ', '%20')
-    #if website and not validate_website(website):
-    #    raise ValueError('You should enter a valid URL.')
-    #location = int(request.form.get('location'))
-    #if location == 0:
-    #    location = None
+    kwargs = {}
+    if 'website' in data:
+        website = data['website'].strip().replace(' ', '%20')
+        if website and not validate_website(website):
+            raise ValueError('You should enter a valid URL.')
+        kwargs['website'] = website
+    if 'location' in data:
+        location = int(request.form.get('location'))
+        if location == 0:
+            location = None
+        kwargs['location'] = location
+    if 'year' in data:
+		if data.get('has_year'):
+		    kwargs['year'] = data['year']
+		else:
+		    kwargs['year'] = None
+    if 'instagram' in data: kwargs['instagram'] = data['instagram']
+    if 'facebook' in data: kwargs['facebook'] = data['facebook']
+    if 'telegram' in data: kwargs['telegram'] = data['telegram']
     UserProfile.update(
         biography=data['biography'],
-        #year=data['year'] if data.get('has_year') else None,
-        #location=location,
-        website=website,
-        #instagram=data['instagram'],
-        #facebook=data['facebook'],
-        #telegram=data['telegram']
+        **kwargs
     ).where(UserProfile.user == user).execute()
     return {}
 
