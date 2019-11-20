@@ -261,9 +261,9 @@ def edit_profile(user):
     full_name = data['full_name'] or username
     if full_name != user.full_name:
         User.update(full_name=full_name).where(User.id == user.id).execute()
-    website = data['website'].strip().replace(' ', '%20')
-    if website and not validate_website(website):
-        raise ValueError('You should enter a valid URL.')
+    #website = data['website'].strip().replace(' ', '%20')
+    #if website and not validate_website(website):
+    #    raise ValueError('You should enter a valid URL.')
     #location = int(request.form.get('location'))
     #if location == 0:
     #    location = None
@@ -272,9 +272,9 @@ def edit_profile(user):
         #year=data['year'] if data.get('has_year') else None,
         #location=location,
         website=website,
-        instagram=data['instagram'],
-        facebook=data['facebook'],
-        telegram=data['telegram']
+        #instagram=data['instagram'],
+        #facebook=data['facebook'],
+        #telegram=data['telegram']
     ).where(UserProfile.user == user).execute()
     return {}
 
