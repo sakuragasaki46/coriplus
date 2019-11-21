@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8-dev
+## 0.8.0
 
 * Added the admin dashboard, accessible from `/admin/` via basic auth. Only users with admin right can access it. Added endpoints `admin.reports` and `admin.reports_detail`.
 * Safety is our top priority: added the ability to report someone other's post for everything violating the site's Terms of Service. The current reasons for reporting are: spam, impersonation, pornography, violence, harassment or bullying, hate speech or symbols, self injury, sale or promotion of firearms or drugs, and underage use.
@@ -12,6 +12,7 @@
 * Added `relationships_follow`, `relationships_unfollow`, `username_availability`, `edit_profile`, `request_edit` and `confirm_edit` endpoints to API.
 * Added `url` utility to model `Upload`.
 * Changed default `robots.txt`, adding report and admin-related lines.
+* Released official [Android client](https://github.com/sakuragasaki46/coriplusapp/releases/tag/v0.8.0)
 
 ## 0.7.1-dev
 
