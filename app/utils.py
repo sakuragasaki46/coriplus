@@ -198,7 +198,7 @@ def check_access_token(token):
     if h.hexdigest()[:32] == hh:
         return user
 
-def create_mentions(cur_user, text):
+def create_mentions(cur_user, text, privacy):
     # create mentions
     mention_usernames = set()
     for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):

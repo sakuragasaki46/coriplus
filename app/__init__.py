@@ -23,7 +23,7 @@ import datetime, time, re, os, sys, string, json, html
 from functools import wraps
 from flask_login import LoginManager
 
-__version__ = '0.8.0'
+__version__ = '0.9-dev'
 
 # we want to support Python 3 only.
 # Python 2 has too many caveats.
@@ -69,6 +69,10 @@ def _inject_user(userid):
 @app.errorhandler(404)
 def error_404(body):
     return render_template('404.html'), 404
+    
+@app.route('/favicon.ico')
+def favicon_ico():
+    return send_from_directory(os.getcwd(), 'favicon.ico')
 
 @app.route('/robots.txt')
 def robots_txt():

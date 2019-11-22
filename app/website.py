@@ -188,22 +188,7 @@ def create():
                 message=message
             )
             file.save(UPLOAD_DIRECTORY + str(upload.id) + '.' + ext)
-        # create mentions
-        mention_usernames = set()
-        for mo in re.finditer(r'\+([A-Za-z0-9_]+(?:\.[A-Za-z0-9_]+)*)', text):
-            mention_usernames.add(mo.group(1))
-        # to avoid self mention
-        mention_usernames.difference_update({user.username})
-        for u in mention_usernames:
-            try:
-                mention_user = User.get(User.username == u)
-                if privacy in (MSGPRV_PUBLIC, MSGPRV_UNLISTED) or \
-                        (privacy == MSGPRV_FRIENDS and
-                        mention_user.is_following(user) and 
-                        user.is_following(mention_user)):
-                    push_notification('mention', mention_user, user=user.id)
-            except User.DoesNotExist:
-                pass
+        create_mentions(user, text, privacy)
         flash('Your message has been posted successfully')
         return redirect(url_for('website.user_detail', username=user.username))
     return render_template('create.html')

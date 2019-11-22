@@ -1,11 +1,11 @@
 from flask import Blueprint, jsonify, request
-import sys, os, datetime, re
+import sys, os, datetime, re, uuid
 from functools import wraps
 from peewee import IntegrityError
 from .models import User, UserProfile, Message, Upload, Relationship, database, \
     MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME, UPLOAD_DIRECTORY
 from .utils import check_access_token, Visibility, push_notification, unpush_notification, \
-    create_mentions, is_username
+    create_mentions, is_username, generate_access_token, pwdhash
 
 bp = Blueprint('api', __name__, url_prefix='/api/V1')
 
@@ -64,17 +64,33 @@ def feed(self):
     if date is None:
         date = datetime.datetime.now()
     else:
-        date = datetime.datetime.fromtimestamp(date)
+        date = datetime.datetime.fromtimestamp(float(date))
     query = Visibility(Message
         .select()
         .where(((Message.user << self.following())
             | (Message.user == self))
             & (Message.pub_date < date))
-        .order_by(Message.pub_date.desc())
-        .limit(20))
-    for message in query:
+        .order_by(Message.pub_date.desc()))
+    for message in query.paginate(1):
         timeline_media.append(get_message_info(message))
-    return {'timeline_media': timeline_media}
+    return {'timeline_media': timeline_media, 'has_more': query.count() > len(timeline_media)}
+
+@bp.route('/explore')
+@validate_access
+def explore(self):
+    timeline_media = []
+    date = request.args.get('offset')
+    if date is None:
+        date = datetime.datetime.now()
+    else:
+        date = datetime.datetime.fromtimestamp(float(date))
+    query = Visibility(Message
+                .select()
+                .where(Message.pub_date < date)
+                .order_by(Message.pub_date.desc()), True)
+    for message in query.paginate(1):
+        timeline_media.append(get_message_info(message))
+    return {'timeline_media': timeline_media, 'has_more': query.count() > len(timeline_media)}
 
 @bp.route('/create', methods=['POST'])
 @validate_access
@@ -88,7 +104,7 @@ def create(self):
         pub_date=datetime.datetime.now(),
         privacy=privacy)
     # This API does not support files. Use create2 instead.
-    create_mentions(self, text)
+    create_mentions(self, text, privacy)
     return {}
 
 @bp.route('/create2', methods=['POST'])
@@ -110,7 +126,7 @@ def create2(self):
             message=message
         )
         file.save(os.path.join(UPLOAD_DIRECTORY, str(upload.id) + '.' + ext))
-    create_mentions(self, text)
+    create_mentions(self, text, privacy)
     return {}
 
 def get_relationship_info(self, other):
@@ -169,16 +185,15 @@ def profile_feed(self, userid):
     if date is None:
         date = datetime.datetime.now()
     else:
-        date = datetime.datetime.fromtimestamp(date)
+        date = datetime.datetime.fromtimestamp(float(date))
     query = Visibility(Message
         .select()
         .where((Message.user == user)
             & (Message.pub_date < date))
-        .order_by(Message.pub_date.desc())
-        .limit(20))
-    for message in query:
+        .order_by(Message.pub_date.desc()))
+    for message in query.paginate(1):
         timeline_media.append(get_message_info(message))
-    return {'timeline_media': timeline_media}
+    return {'timeline_media': timeline_media, 'has_more': query.count() > len(timeline_media)}
 
 @bp.route('/relationships/<int:userid>/follow', methods=['POST'])
 @validate_access
@@ -305,3 +320,31 @@ def save_edit(self, id):
     data = request.get_json(True)
     Message.update(text=data['text'], privacy=data['privacy']).where(Message.id == id).execute()
     return {}
+
+# no validate access for this endpoint!
+@bp.route('/create_account', methods=['POST'])
+def create_account():
+    try:
+        data = request.get_json(True)
+        try:
+            birthday = datetime.datetime.fromisoformat(data['birthday'])
+        except ValueError:
+            raise ValueError('invalid date format')
+        username = data['username'].lower()
+        if not is_username(username):
+            raise ValueError('invalid username')
+        with database.atomic():
+            user = User.create(
+                username=username,
+                full_name=data.get('full_name') or username,
+                password=pwdhash(data['password']),
+                email=data['email'],
+                birthday=birthday,
+                join_date=datetime.datetime.now())
+            UserProfile.create(
+                user=user
+            )
+
+        return jsonify({'access_token': generate_access_token(user), 'status': 'ok'})
+    except Exception as e:
+        return jsonify({'message': str(e), 'status': 'fail'})

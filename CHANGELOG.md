@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9-dev
+
+* Added `create_account` endpoint to API. This endpoint does not require an access token.
+* Added `has_more` field to feed endpoints (`feed`, `explore` and `profile_feed`).
+* Added `/favicon.ico`.
+* Added `explore` endpoint.
+* Fixed some bugs when creating mentions and using offsets in feeds.
+
 ## 0.8.0
 
 * Added the admin dashboard, accessible from `/admin/` via basic auth. Only users with admin right can access it. Added endpoints `admin.reports` and `admin.reports_detail`.
@@ -12,7 +20,7 @@
 * Added `relationships_follow`, `relationships_unfollow`, `username_availability`, `edit_profile`, `request_edit` and `confirm_edit` endpoints to API.
 * Added `url` utility to model `Upload`.
 * Changed default `robots.txt`, adding report and admin-related lines.
-* Released official [Android client](https://github.com/sakuragasaki46/coriplusapp/releases/tag/v0.8.0)
+* Released official [Android client](https://github.com/sakuragasaki46/coriplusapp/releases/tag/v0.8.0).
 
 ## 0.7.1-dev
 
