@@ -2,7 +2,8 @@ from flask import Blueprint, jsonify, request
 import sys, os, datetime, re, uuid
 from functools import wraps
 from peewee import IntegrityError
-from .models import User, UserProfile, Message, Upload, Relationship, database, \
+from .models import User, UserProfile, Message, Upload, Relationship, Notification, \
+    MessageUpvote, database, \
     MSGPRV_PUBLIC, MSGPRV_UNLISTED, MSGPRV_FRIENDS, MSGPRV_ONLYME, UPLOAD_DIRECTORY
 from .utils import check_access_token, Visibility, push_notification, unpush_notification, \
     create_mentions, is_username, generate_access_token, pwdhash
@@ -25,7 +26,9 @@ def get_message_info(message):
         'text': message.text,
         'privacy': message.privacy,
         'pub_date': message.pub_date.timestamp(),
-        'media': media
+        'media': media,
+        'score': len(message.upvotes),
+        'upvoted_by_self': message.upvoted_by_self(),
     }
 
 def validate_access(func):
@@ -162,6 +165,7 @@ def profile_info(self, userid):
             "generation": profile.year,
             "instagram": profile.instagram,
             "facebook": profile.facebook,
+            "join_date": user.join_date.timestamp(),
             "relationships": get_relationship_info(self, user),
             "messages_count": len(user.messages),
             "followers_count": len(user.followers()),
@@ -348,3 +352,82 @@ def create_account():
         return jsonify({'access_token': generate_access_token(user), 'status': 'ok'})
     except Exception as e:
         return jsonify({'message': str(e), 'status': 'fail'})
+
+def get_notification_info(notification):
+    obj = {
+        "id": notification.id,
+        "type": notification.type,
+        "timestamp": notification.pub_date.timestamp(),
+        "seen": notification.seen
+    }
+    obj.update(json.loads(notification.detail))
+    return obj
+
+@bp.route('/notifications/count')
+@validate_access
+def notifications_count(self):
+    count = len(Notification
+        .select()
+        .where((Notification.target == self) & (Notification.seen == 0)))
+    return {
+        'count': count
+    }
+
+@bp.route('/notifications')
+@validate_access
+def notifications(self):
+    items = []
+    query = (Notification
+        .select()
+        .where(Notification.target == self)
+        .order_by(Notification.pub_date.desc())
+        .limit(100))
+    unseen_count = len(Notification
+        .select()
+        .where((Notification.target == self) & (Notification.seen == 0)))
+    for notification in query:
+        items.append(get_notification_info(query))
+    return {
+        "notifications": {
+            "items": items,
+            "unseen_count": unseen_count
+        }
+    }
+
+@bp.route('/notifications/seen', methods=['POST'])
+@validate_access
+def notifications_seen(self):
+    data = request.get_json(True)
+    (Notification
+     .update(seen=1)
+     .where((Notification.target == self) & (Notification.pub_date < data['offset']))
+     .execute())
+    return {}
+
+@bp.route('/score/message/<int:id>/add', methods=['POST'])
+@validate_access
+def score_message_add(self, id):
+    message = Message[id]
+    MessageUpvote.create(
+        message=message,
+        user=self,
+        created_date=datetime.datetime.now()
+    )
+    return {
+        'score': len(message.upvotes)
+    }
+
+@bp.route('/score/message/<int:id>/remove', methods=['POST'])
+@validate_access
+def score_message_remove(self, id):
+    message = Message[id]
+    (MessageUpvote
+     .delete()
+     .where(
+        (MessageUpvote.message == message) &
+        (MessageUpvote.user == self))
+     .execute()
+    )
+    return {
+        'score': len(message.upvotes)
+    }

@@ -2,10 +2,13 @@
 
 ## 0.9-dev
 
+* Added positive feedback mechanism: now you can +1 a message. So, `score_message_add` and `score_message_remove` API endpoints were added, and `MessageUpvote` table was created.
+* Added notifications support for API.
 * Added `create_account` endpoint to API. This endpoint does not require an access token.
+* Added `explore`, `notifications_count`, `notifications` and `notifications_seen` endpoints.
 * Added `has_more` field to feed endpoints (`feed`, `explore` and `profile_feed`).
+* Added `join_date` field into `user` object of `profile_info` endpoint, for more profile transparency.
 * Added `/favicon.ico`.
-* Added `explore` endpoint.
 * Fixed some bugs when creating mentions and using offsets in feeds.
 
 ## 0.8.0

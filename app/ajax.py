@@ -5,8 +5,9 @@ Warning: this is not the public API.
 '''
 
 from flask import Blueprint, jsonify
-from .models import User
+from .models import User, Message, MessageUpvote
 from .utils import locations, get_current_user, is_username
+import datetime
 
 bp = Blueprint('ajax', __name__, url_prefix='/ajax')
 
@@ -35,3 +36,30 @@ def location_search(name):
         if value.lower().startswith(name.lower()):
             results.append({'value': key, 'display': value})
     return jsonify({'results': results})
+
+@bp.route('/score/<int:id>/toggle', methods=['POST'])
+def score_toggle(id):
+    user = get_current_user()
+    message = Message[id]
+    upvoted_by_self = (MessageUpvote
+            .select()
+            .where((MessageUpvote.message == message) & (MessageUpvote.user == user))
+            .exists())
+    if upvoted_by_self:
+        (MessageUpvote
+         .delete()
+         .where(
+            (MessageUpvote.message == message) &
+            (MessageUpvote.user == user))
+         .execute()
+        )
+    else:
+        MessageUpvote.create(
+            message=message,
+            user=user,
+            created_date=datetime.datetime.now()
+        )
+    return jsonify({
+        "score": message.score,
+        "status": "ok"
+    })

@@ -5,12 +5,16 @@
 </div>
 {% endif %}
 <p class="message-footer">
+  <a href="javascript:void(0);" class="message-upvote" onclick="toggleUpvote({{ message.id }});">+</a>
+  <span class="message-score">{{ message.score }}</span>
+  - 
   <a href="{{ url_for('website.user_detail', username=message.user.username) }}">{{ message.user.username }}</a> 
   - 
   {% set message_privacy = message.privacy %}
-  {% if message.privacy in (0, 1) %} Public
-  {% elif message.privacy == 2 %} Friends
-  {% elif message.privacy == 3 %} Only me
+  {% if message_privacy == 0 %} Public
+  {% elif message_privacy == 1 %} Unlisted
+  {% elif message_privacy == 2 %} Friends
+  {% elif message_privacy == 3 %} Only me
   {% endif %}
   -
   <time datetime="{{ message.pub_date.isoformat() }}" title="{{ message.pub_date.ctime() }}">{{ message.pub_date | human_date }}</time>

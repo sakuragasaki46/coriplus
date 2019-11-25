@@ -162,6 +162,17 @@ class Message(BaseModel):
             return user.is_following(cur_user) and cur_user.is_following(user)
         else:
             return False
+    @property
+    def score(self):
+        return self.upvotes.count()
+    def upvoted_by_self(self):
+        from .utils import get_current_user
+        user = get_current_user()
+        return (MessageUpvote
+         .select()
+         .where((MessageUpvote.message == self) & (MessageUpvote.user == user))
+         .exists()
+        )
 
 # this model contains two foreign keys to user -- it essentially allows us to
 # model a "many-to-many" relationship between users.  by querying and joining
@@ -226,6 +237,8 @@ report_reasons = [
     (REPORT_REASON_FIREARMS, "Sale or promotion of firearms"),
     (REPORT_REASON_DRUGS, "Sale or promotion of drugs"),
     (REPORT_REASON_UNDERAGE, "This user is less than 13 years old"),
+    (REPORT_REASON_LEAK, "Leak of sensitive information"),
+    (REPORT_REASON_DMCA, "Copyright violation")
 ]
 
 REPORT_STATUS_DELIVERED = 0
@@ -251,10 +264,21 @@ class Report(BaseModel):
         except DoesNotExist:
             return
 
+# New in 0.9.
+class MessageUpvote(BaseModel):
+    message = ForeignKeyField(Message, backref='upvotes')
+    user = ForeignKeyField(User)
+    created_date = DateTimeField()
+    
+    class Meta:
+        indexes = (
+            (('message', 'user'), True),
+        )
+
 def create_tables():
     with database:
         database.create_tables([
             User, UserAdminship, UserProfile, Message, Relationship, 
-            Upload, Notification, Report])
+            Upload, Notification, Report, MessageUpvote])
     if not os.path.isdir(UPLOAD_DIRECTORY):
         os.makedirs(UPLOAD_DIRECTORY)

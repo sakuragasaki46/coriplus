@@ -98,3 +98,21 @@ function showHideMessageOptions(id){
     options.style.display = 'block';
   }
 }
+
+function toggleUpvote(id){
+  var msgElem = document.getElementById(id);
+  var upvoteLink = msgElem.getElementsByClassName('message-upvote')[0];
+  var scoreCounter = msgElem.getElementsByClassName('message-score')[0];
+  var xhr = new XMLHttpRequest();
+  xhr.open("POST", "/ajax/score/" + id + "/toggle", true);
+  xhr.onreadystatechange = function(){
+    if(xhr.readyState == XMLHttpRequest.DONE){
+      if(xhr.status == 200){
+        console.log('liked #' + id);
+        var data = JSON.parse(xhr.responseText);
+        scoreCounter.innerHTML = data.score;
+      }
+    }
+  };
+  xhr.send();
+}
