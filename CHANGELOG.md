@@ -2,6 +2,7 @@
 
 ## 0.9-dev
 
+* Website redesign: added some material icons, implemented via a `inline_svg` function, injected by default in templates and defined in `utils.py`.
 * Added positive feedback mechanism: now you can +1 a message. So, `score_message_add` and `score_message_remove` API endpoints were added, and `MessageUpvote` table was created.
 * Added notifications support for API.
 * Added `create_account` endpoint to API. This endpoint does not require an access token.

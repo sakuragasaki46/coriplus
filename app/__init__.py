@@ -30,6 +30,8 @@ __version__ = '0.9-dev'
 if sys.version_info[0] < 3:
     raise RuntimeError('Python 3 required')
 
+os.chdir(os.path.dirname(os.path.dirname(__file__)))
+
 app = Flask(__name__)
 app.config.from_pyfile('../config.py')
 
@@ -60,7 +62,11 @@ def after_request(response):
 
 @app.context_processor
 def _inject_variables():
-    return {'site_name': app.config['SITE_NAME'], 'locations': locations}
+    return {
+        'site_name': app.config['SITE_NAME'],
+        'locations': locations,
+        'inline_svg': inline_svg
+    }
 
 @login_manager.user_loader
 def _inject_user(userid):

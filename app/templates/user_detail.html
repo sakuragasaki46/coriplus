@@ -18,7 +18,7 @@
       <a href="/create/">Create a message</a>
     {% endif %}
   {% endif %}
-  <ul>
+  <ul class="timeline">
     {% for message in message_list %}
       <li id="{{ message.id }}">{% include "includes/message.html" %}</li>
     {% endfor %}

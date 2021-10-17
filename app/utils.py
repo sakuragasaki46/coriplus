@@ -5,7 +5,7 @@ A list of utilities used across modules.
 import datetime, re, base64, hashlib, string, sys, json
 from .models import User, Message, Notification, MSGPRV_PUBLIC, MSGPRV_UNLISTED, \
     MSGPRV_FRIENDS, MSGPRV_ONLYME
-from flask import abort, render_template, request, session
+from flask import Markup, abort, render_template, request, session
 
 _forbidden_extensions = 'com net org txt'.split()
 _username_characters = frozenset(string.ascii_letters + string.digits + '_')
@@ -82,7 +82,7 @@ class Visibility(object):
 
 def get_locations():
     data = {}
-    with open('locations.txt') as f:
+    with open('locations.txt', encoding='utf-8') as f:
         for line in f:
             line = line.rstrip()
             if line.startswith('#'):
@@ -215,3 +215,14 @@ def create_mentions(cur_user, text, privacy):
                 push_notification('mention', mention_user, user=user.id)
         except User.DoesNotExist:
             pass
+
+# New in 0.9
+def inline_svg(name, width=None):
+    try:
+        with open('icons/' + name + '-24px.svg') as f:
+            data = f.read()
+            if isinstance(width, int):
+                data = re.sub(r'( (?:height|width)=")\d+(")', lambda x:x.group(1) + str(width) + x.group(2), data)
+            return Markup(data)
+    except OSError:
+        return ''

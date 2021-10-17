@@ -17,7 +17,7 @@ import os
 # here should go `from .utils import get_current_user`, but it will cause
 # import errors. It's instead imported at function level.
 
-database = SqliteDatabase(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'coriplus.sqlite'))
+database = SqliteDatabase('coriplus.sqlite')
 
 class BaseModel(Model):
     class Meta:
@@ -51,8 +51,7 @@ class User(BaseModel):
         return False
     @property
     def is_authenticated(self):
-        from .utils import get_current_user
-        return self == get_current_user()
+        return True
 
     # it often makes sense to put convenience methods on model instances, for
     # example, "give me all the users this user is following":

@@ -12,18 +12,18 @@
       <h1><a href="{{ url_for('website.homepage') }}">{{ site_name }}</a></h1>
       <div class="metanav">
       {% if current_user.is_anonymous %}
-        <a href="{{ url_for('website.login', next=request.full_path) }}">log in</a>
-        <a href="{{ url_for('website.register', next=request.full_path) }}">register</a>
+        <a href="{{ url_for('website.login', next=request.full_path) }}">{{ inline_svg('exit_to_app') }} log in</a>
+        <a href="{{ url_for('website.register', next=request.full_path) }}">{{ inline_svg('person_add') }} register</a>
       {% else %}
-        <a href="{{ url_for('website.user_detail', username=current_user.username) }}">{{ current_user.username }}</a>
+        <a href="{{ url_for('website.user_detail', username=current_user.username) }}">{{ inline_svg('person') }} {{ current_user.username }}</a>
         {% set notification_count = current_user.unseen_notification_count() %}
         {% if notification_count > 0 %}
         <a href="{{ url_for('website.notifications') }}">(<strong>{{ notification_count }}</strong>)</a>
         {% endif %}
         - 
-        <a href="{{ url_for('website.public_timeline') }}">explore</a>
-        <a href="{{ url_for('website.create') }}">create</a>
-        <a href="{{ url_for('website.logout') }}">log out</a>
+        <a href="{{ url_for('website.public_timeline') }}">{{ inline_svg('explore') }} explore</a>
+        <a href="{{ url_for('website.create') }}">{{ inline_svg('edit') }} create</a>
+        <a href="{{ url_for('website.logout') }}">{{ inline_svg('exit_to_app') }} log out</a>
       {% endif %}
       </div>
     </div>
@@ -36,7 +36,8 @@
     <div class="footer">
       <p class="copyright">&copy; 2019 Sakuragasaki46. 
         <a href="/about/">About</a> - <a href="/terms/">Terms</a> - 
-        <a href="/privacy/">Privacy</a></p>
+        <a href="/privacy/">Privacy</a> - 
+        <a href="https://github.com/sakuragasaki46/coriplus">GitHub</a></p>
     </div>
     <script src="/static/lib.js"></script>
   </body>

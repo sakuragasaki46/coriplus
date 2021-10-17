@@ -1,9 +1,16 @@
-body,button,input,select,textarea{font-family:'Segoe UI',Arial,Helvetica,sans-serif}
+body,button,input,select,textarea{font-family:Roboto,'Segoe UI',Arial,Helvetica,sans-serif}
 body{margin:0}
-.header{padding:12px;color:white;background-color:#ff3018}
+a{text-decoration:none}
+a:hover{text-decoration:underline}
+@media (max-width:640px){
+  .mobile-collapse{display:none}
+}
+.header{padding:12px;color:white;background-color:#ff3018;box-shadow:0 0 3px 3px #ccc}
 .content{padding:12px}
 .header a{color:white}
+.header a svg{fill:white}
 .content a{color:#3399ff}
+.content a svg{fill:#3399ff}
 .content a.plus{color:#ff3018}
 .metanav{float:right}
 .header h1{margin:0;display:inline-block}
@@ -14,7 +21,9 @@ body{margin:0}
 }
 .weak{opacity:.5}
 .field_desc{display:block}
-.message-visual img{max-width:100%;max-height:8em}
+ul.timeline{padding:0;margin:auto;max-width:960px}
+ul.timeline > li{list-style:none;border-bottom:#808080 1px solid}
+.message-visual img{max-width:100%;margin:auto}
 .message-options-showhide::before{content:'\2026'}
 .message-options{display:none}
 .create_text{width:100%;height:8em}

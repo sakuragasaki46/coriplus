@@ -4,7 +4,7 @@ Filter functions used in the website templates.
 
 from flask import Markup
 import html, datetime, re, time
-from .utils import tokenize
+from .utils import tokenize, inline_svg as _inline_svg
 from . import app
 
 @app.template_filter()
@@ -64,3 +64,4 @@ def is_following(from_user, to_user):
 def locationdata(key):
     if key > 0:
         return locations[str(key)]
+
