@@ -6,3 +6,12 @@ uploads/
 **~
 **/.*.swp
 **/__pycache__/
+venv
+.env
+.venv
+env
+data/
+conf/
+config/
+\#*\#
+.\#*

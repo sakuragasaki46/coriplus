@@ -5,7 +5,8 @@ A list of utilities used across modules.
 import datetime, re, base64, hashlib, string, sys, json
 from .models import User, Message, Notification, MSGPRV_PUBLIC, MSGPRV_UNLISTED, \
     MSGPRV_FRIENDS, MSGPRV_ONLYME
-from flask import Markup, abort, render_template, request, session
+from flask import abort, render_template, request, session
+from markupsafe import Markup
 
 _forbidden_extensions = 'com net org txt'.split()
 _username_characters = frozenset(string.ascii_letters + string.digits + '_')

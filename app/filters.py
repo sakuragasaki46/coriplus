@@ -2,7 +2,7 @@
 Filter functions used in the website templates.
 '''
 
-from flask import Markup
+from markupsafe import Markup
 import html, datetime, re, time
 from .utils import tokenize, inline_svg as _inline_svg
 from . import app
