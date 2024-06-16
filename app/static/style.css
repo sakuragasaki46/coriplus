@@ -13,6 +13,7 @@ a:hover{text-decoration:underline}
 .content a svg{fill:#3399ff}
 .content a.plus{color:#ff3018}
 .metanav{float:right}
+.metanav-divider{width:1px;background:white;display:inline-block}
 .header h1{margin:0;display:inline-block}
 .flash{background-color:#ff9;border:yellow 1px solid}
 .infobox{padding:12px;border:#ccc 1px solid}
